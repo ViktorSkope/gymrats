@@ -51,7 +51,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
             type="button"
             aria-label="Voltar"
             onClick={onBack}
-            className="absolute top-[max(14px,env(safe-area-inset-top))] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink shadow-sm shadow-black/5 outline-none focus-visible:ring-3 focus-visible:ring-ink/30"
+            className="absolute top-[max(14px,var(--sat))] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink shadow-sm shadow-black/5 outline-none focus-visible:ring-3 focus-visible:ring-ink/30"
             {...popover}
             whileTap={PRESS}
           >
@@ -61,7 +61,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
       </div>
 
       <motion.section
-        className="relative mx-[9px] mb-[max(7px,env(safe-area-inset-bottom))] flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-ink text-white"
+        className="relative mx-[9px] mb-[max(7px,var(--sab))] flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-ink text-white"
         initial={{ y: 80 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 32 }}

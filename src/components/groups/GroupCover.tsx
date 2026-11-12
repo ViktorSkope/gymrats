@@ -49,7 +49,7 @@ export function GroupCover({ cover, className = "", layoutId, rat = true, childr
   return (
     <motion.div layoutId={layoutId} className={`relative overflow-hidden ${className}`} style={{ backgroundColor: THEMES[cover.kind].rat }}>
       {cover.photo ? (
-        <img src={cover.photo} alt="" className="absolute inset-0 size-full object-cover" />
+        <img src={cover.photo} alt="" className="absolute inset-0 size-full object-cover" draggable={false} />
       ) : (
         <>
           <PatternFill pattern={cover.pattern} />

@@ -158,14 +158,14 @@ export function Welcome({ onContinue }: { onContinue: () => void }) {
     >
       {/* The rat stands centred; the card slides over its lower body. Its width (91% of the screen,
           as in the design) shrinks on short screens so the card always fits. */}
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-end pt-[max(16px,env(safe-area-inset-top))]">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-end pt-[max(16px,var(--sat))]">
         <div className="w-[clamp(120px,calc((100dvh-440px)*1.12),91%)]">
           <LoginRat />
         </div>
       </div>
 
       <motion.section
-        className="@container relative mx-[7px] mb-[max(7px,env(safe-area-inset-bottom))] flex flex-col items-center rounded-[30px] bg-ink px-6 pt-[clamp(28px,7dvh,62px)] pb-[clamp(16px,4dvh,36px)]"
+        className="@container relative mx-[7px] mb-[max(7px,var(--sab))] flex flex-col items-center rounded-[30px] bg-ink px-6 pt-[clamp(28px,7dvh,62px)] pb-[clamp(16px,4dvh,36px)]"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%", transition: { duration: CLOSE * 1.5, ease: EASE_IN_OUT } }}

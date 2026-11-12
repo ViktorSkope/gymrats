@@ -67,7 +67,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="join-title"
-            className="relative rounded-t-[32px] bg-white px-6 pt-3 pb-[max(24px,env(safe-area-inset-bottom))]"
+            className="relative mx-[7px] mb-[max(7px,var(--sab))] rounded-[30px] bg-paper px-5 pt-3 pb-5"
             {...sheet}
             onAnimationComplete={() => input.current?.focus()}
           >
@@ -76,7 +76,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
               <h2 id="join-title" className="text-[24px] leading-tight tracking-[-0.02em]">
                 Entrar em um grupo
               </h2>
-              <motion.button type="button" aria-label="Fechar" onClick={dismiss} className="-mt-1 -mr-2 flex size-10 items-center justify-center rounded-full text-ink/60" whileTap={PRESS}>
+              <motion.button type="button" aria-label="Fechar" onClick={dismiss} className="-mt-1 -mr-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-[#EDEBEE] text-ink/70" whileTap={PRESS}>
                 <XIcon className="size-5" />
               </motion.button>
             </div>
@@ -103,7 +103,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
                     enterKeyHint="go"
                     aria-invalid={status === "notFound"}
                     aria-describedby="invite-status"
-                    className="h-[52px] w-full rounded-2xl border border-ink/15 bg-white pr-12 pl-4 text-[17px] outline-none transition-[border-color,box-shadow] placeholder:text-ink/35 focus:border-ink focus:ring-3 focus:ring-ink/8 aria-invalid:border-[#D23A2C]"
+                    className="h-[52px] w-full rounded-[20px] bg-[#EDEBEE] pr-12 pl-4 text-[17px] outline-none transition-shadow placeholder:text-ink/40 focus:ring-2 focus:ring-ink/80 aria-invalid:ring-2 aria-invalid:ring-[#D23A2C]"
                   />
                   {!value && (
                     <button type="button" aria-label="Colar" onClick={paste} className="absolute top-1/2 right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-xl text-ink/55">
@@ -114,7 +114,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
                 <motion.button
                   type="submit"
                   aria-disabled={!ready}
-                  className="flex h-[52px] min-w-[96px] items-center justify-center rounded-2xl bg-rat px-5 text-[17px] font-medium text-on-rat transition-colors aria-disabled:bg-rat/40"
+                  className="flex h-[52px] min-w-[96px] items-center justify-center rounded-[20px] bg-rat px-5 text-[17px] font-medium text-on-rat transition-colors aria-disabled:bg-rat/40"
                   whileTap={ready ? PRESS : undefined}
                 >
                   {status === "checking" ? <LoaderCircleIcon className="size-5 animate-spin" aria-label="Procurando" /> : "Entrar"}
@@ -142,7 +142,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
                 <PlusIcon className="size-5" />
                 Criar um grupo
               </motion.button>
-              <motion.button type="button" className="flex h-12 items-center justify-center gap-2.5 rounded-[20px] border border-ink/15 text-[16px] font-medium" whileTap={PRESS}>
+              <motion.button type="button" className="flex h-12 items-center justify-center gap-2.5 rounded-[20px] bg-[#EDEBEE] text-[16px] font-medium" whileTap={PRESS}>
                 <CompassIcon className="size-5" />
                 Grupos da comunidade
               </motion.button>

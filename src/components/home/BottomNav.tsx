@@ -32,7 +32,7 @@ const ITEMS: { id: Tab; label: string; icon: ComponentType<{ className?: string 
  */
 export function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <nav aria-label="Navegação" className="flex shrink-0 items-center justify-around px-4 pt-2 pb-[max(10px,env(safe-area-inset-bottom))]">
+    <nav aria-label="Navegação" className="flex shrink-0 items-center justify-around px-4 pt-2 pb-[max(10px,var(--sab))]">
       {ITEMS.map(({ id, label, icon: Icon, filled }) => {
         const selected = id === active
         return (

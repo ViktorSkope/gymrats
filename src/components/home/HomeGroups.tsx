@@ -2,70 +2,33 @@ import { ArrowUpRightIcon, PlusIcon } from "lucide-react"
 import { animate, motion, useMotionValue } from "motion/react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
-import { UNIT_SHORT, ranking, type Group, type Standing } from "@/components/groups/groups"
-import { RestingRat } from "@/components/rats/RestingRat"
+import { PersonAvatar } from "@/components/Avatar"
+import { UNIT_SHORT, ranking, type Group } from "@/components/groups/groups"
+import { MuscleRat } from "@/components/rats/MuscleRat"
+import { SleepyRat } from "@/components/rats/SleepyRat"
 import { haptic } from "@/hooks/useHaptic"
 import { useStored } from "@/hooks/useStored"
 import { EASE_IN_OUT, PRESS, settle } from "@/motion"
-import { Avatar } from "./TabViews"
+import { themeStyle } from "@/theme"
+import { RankingReel } from "./RankingReel"
 
 const GAP = 8
 
-/** A friend's face: the rat avatar in a gold ring. */
-function Face({ className = "size-9" }: { className?: string }) {
-  return (
-    <span className={`block shrink-0 overflow-hidden rounded-full ring-2 ring-[#F2B640] ${className}`}>
-      <Avatar />
-    </span>
-  )
-}
-
 /** "3 amigos fizeram check-in hoje", with their faces stacked on the right. */
-export function FriendsStrip({ names }: { names: string[] }) {
-  if (!names.length) return null
-  const text = names.length === 1 ? `${names[0]} fez check-in hoje` : `${names.length} amigos fizeram check-in hoje`
+export function FriendsStrip({ people }: { people: { name: string; photo?: string }[] }) {
+  if (!people.length) return null
+  const text = people.length === 1 ? `${people[0].name} fez check-in hoje` : `${people.length} amigos fizeram check-in hoje`
   return (
-    <motion.div className="flex h-[52px] shrink-0 items-center justify-between rounded-[30px] bg-[#FFF3D6] pr-2.5 pl-5" {...settle(1, 0.1)}>
-      <p className="truncate text-[16px]">{text}</p>
+    <motion.div className="flex h-[44px] shrink-0 items-center justify-between rounded-[30px] bg-[#FFF3D6] pr-2 pl-5" {...settle(1, 0.1)}>
+      <p className="truncate text-[15px]">{text}</p>
       <div className="flex shrink-0 -space-x-3" aria-hidden="true">
-        {names.slice(0, 3).map((name, i) => (
-          <motion.span key={name} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.25 + i * 0.06 }}>
-            <Face className="size-[34px]" />
+        {people.slice(0, 3).map((person, i) => (
+          <motion.span key={person.name} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.25 + i * 0.06 }}>
+            <PersonAvatar name={person.name} photo={person.photo} className="size-[30px]" />
           </motion.span>
         ))}
       </div>
     </motion.div>
-  )
-}
-
-/** The few places around you, with your own row pinned on top of the stack. */
-function Window({ standings, unit }: { standings: Standing[]; unit: string }) {
-  const mine = standings.findIndex((s) => s.me)
-  // Your row always shows. With people ahead of you, it sits at the bottom under the
-  // closest of them (rows further up are cut first). In first place it sits on top,
-  // over the people chasing you (rows further down are cut first).
-  const leading = mine === 0
-  const rows = leading ? standings.slice(0, 4) : standings.slice(Math.max(0, mine - 3), mine + 1)
-  return (
-    <ol className={`flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden ${leading ? "justify-start" : "justify-end"}`}>
-      {rows.map((s, i) => (
-        <motion.li
-          key={s.id}
-          className={`relative flex h-[52px] shrink-0 items-center gap-3 rounded-[22px] pr-4 pl-3 ${s.me ? `z-10 bg-paper text-ink ${leading ? "shadow-[0_6px_20px_rgb(0_0_0/0.18)]" : "shadow-[0_-6px_20px_rgb(0_0_0/0.18)]"}` : "bg-black/18"} ${s.me && i > 0 ? "-mt-4" : ""} ${s.me && leading && rows.length > 1 ? "-mb-4" : ""}`}
-          {...settle(i, 0.15)}
-        >
-          <Face className="size-9" />
-          <span className="min-w-0 flex-1 leading-tight">
-            <span className={`block text-[14px] ${s.me ? "text-ink/55" : "opacity-80"}`}>{s.rank}º lugar</span>
-            <span className="block truncate text-[16px] font-medium">{s.me ? "Você" : s.name}</span>
-          </span>
-          <span className="shrink-0 text-right leading-none">
-            <span className="text-[24px] font-medium tabular-nums">{s.points}</span>
-            <span className={`ml-1 text-[12px] ${s.me ? "text-ink/50" : "opacity-70"}`}>{unit}</span>
-          </span>
-        </motion.li>
-      ))}
-    </ol>
   )
 }
 
@@ -74,59 +37,66 @@ function Dots({ count, active }: { count: number; active: number }) {
   return (
     <span className="flex gap-1" aria-hidden="true">
       {Array.from({ length: count }, (_, i) => (
-        <span key={i} className={`h-1.5 rounded-full bg-white transition-all duration-200 ${i === active ? "w-4" : "w-1.5 opacity-40"}`} />
+        <span key={i} className={`h-1.5 rounded-full bg-current transition-all duration-200 ${i === active ? "w-4" : "w-1.5 opacity-40"}`} />
       ))}
     </span>
   )
 }
 
-function GroupSlide({ group, me, index, count, onOpen }: { group: Group; me: string; index: number; count: number; onOpen: () => void }) {
+function GroupSlide({ group, me, index, count, onOpen, onReelDone }: { group: Group; me: string; index: number; count: number; onOpen: () => void; onReelDone?: () => void }) {
   const standings = ranking(group, me)
   const mine = standings.find((s) => s.me)!
   const alone = standings.length === 1
   return (
-    <div className="flex h-full flex-col rounded-[30px] bg-rat p-5 text-white">
+    <div className="flex h-full flex-col rounded-[30px] bg-rat px-4 pt-4 pb-3 text-on-rat" style={themeStyle(group.cover.kind)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <p className="truncate text-[15px] font-semibold">{group.name}</p>
+            <p className="truncate text-[14px] font-semibold">{group.name}</p>
             <Dots count={count} active={index} />
           </div>
-          <p className="mt-1 text-[clamp(24px,7.6vw,30px)] leading-tight tracking-[-0.02em]">{alone ? "Só você por enquanto" : `Você está em ${mine.rank}º lugar`}</p>
+          <p className="mt-1 truncate text-[clamp(20px,6vw,26px)] leading-tight tracking-[-0.02em]">{alone ? "Só você por enquanto" : `Você está em ${mine.rank}º lugar`}</p>
         </div>
         <motion.button type="button" aria-label={`Abrir ${group.name}`} onClick={onOpen} className="-mt-1 -mr-1 flex size-11 shrink-0 items-center justify-center rounded-full" whileTap={PRESS}>
-          <ArrowUpRightIcon className="size-8" strokeWidth={2.2} />
+          <ArrowUpRightIcon className="size-7" strokeWidth={2.2} />
         </motion.button>
       </div>
-      <div className="mt-4 flex min-h-0 flex-1 flex-col">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col">
         {alone ? (
           <>
-            <Window standings={standings} unit={UNIT_SHORT[group.scoring]} />
-            <motion.button type="button" onClick={onOpen} className="mt-1.5 flex h-[52px] shrink-0 items-center gap-3 rounded-[22px] border-2 border-dashed border-white/35 px-3 text-left text-[15px]" whileTap={PRESS}>
-              <span className="flex size-9 items-center justify-center rounded-full bg-white/15">
+            <RankingReel standings={standings} unit={UNIT_SHORT[group.scoring]} onDone={onReelDone} />
+            <motion.button type="button" onClick={onOpen} className="mt-1.5 flex h-[52px] shrink-0 items-center gap-3 rounded-[22px] border-2 border-dashed border-current/35 px-3 text-left text-[15px]" whileTap={PRESS}>
+              <span className="flex size-9 items-center justify-center rounded-full bg-current/15">
                 <PlusIcon className="size-5" />
               </span>
               Chame alguém para disputar
             </motion.button>
           </>
         ) : (
-          <Window standings={standings} unit={UNIT_SHORT[group.scoring]} />
+          <RankingReel standings={standings} unit={UNIT_SHORT[group.scoring]} onDone={onReelDone} />
         )}
       </div>
     </div>
   )
 }
 
-/** Last slide: a sleeping rat and the way to another group. */
+/**
+ * Last slide, the way to another group. With no groups yet it's red with the rat
+ * asleep (nothing to compete in); once you have groups it's black with the rat flexing.
+ */
 function NewGroupSlide({ hasGroups, onNewGroup }: { hasGroups: boolean; onNewGroup: () => void }) {
   return (
-    <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[30px] bg-rat p-5 text-white">
-      <RestingRat fur="#B42F23" shade="#7E1D14" className="absolute top-3 right-4 w-[clamp(84px,24vw,104px)]" />
-      <div>
+    <div className={`relative flex h-full flex-col justify-between overflow-hidden rounded-[30px] p-5 text-white ${hasGroups ? "bg-black" : "bg-rat"}`}>
+      {hasGroups ? (
+        <MuscleRat className="absolute top-4 right-3 h-[calc(100%-96px)] max-h-[215px] w-auto" />
+      ) : (
+        <SleepyRat className="absolute top-3 right-3 h-[calc(100%-90px)] max-h-[200px] w-auto" />
+      )}
+      <div className="relative">
         <p className="text-[15px] font-semibold">Grupos</p>
-        <p className="mt-3 max-w-[64%] text-[17px] leading-snug">{hasGroups ? "Mais um grupo, mais motivo para treinar." : "Você ainda não tem grupos. Crie um ou entre em um grupo."}</p>
+        <p className="mt-3 max-w-[56%] text-[17px] leading-snug">{hasGroups ? "Mais um grupo, mais motivo para treinar." : "Você ainda não tem grupos. Crie um ou entre em um grupo."}</p>
       </div>
-      <motion.button type="button" onClick={onNewGroup} className="relative mt-5 h-12 w-full shrink-0 rounded-[20px] bg-paper text-[17px] text-ink" whileTap={PRESS}>
+      <motion.button type="button" onClick={onNewGroup} className={`relative mt-5 h-12 w-full shrink-0 rounded-[20px] text-[17px] text-ink ${hasGroups ? "bg-white" : "bg-paper"}`} whileTap={PRESS}>
         Novo grupo
       </motion.button>
     </div>
@@ -161,16 +131,22 @@ export function GroupCarousel({ groups, me, onOpen, onNewGroup }: { groups: Grou
     if (width) x.set(-index * step)
   }, [width]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Peekaboo: nudge toward a neighbour and spring back, once per landing.
+  // Peekaboo: nudge toward a neighbour and spring back, once per landing. It waits
+  // until the ranking on the card in view has finished (2s after your row lands),
+  // so the two animations never compete. The last card has no ranking to wait for.
+  const [reelDone, setReelDone] = useState(false)
+  const peeked = useRef(false)
+  const waiting = index < count - 1 && !reelDone
   useEffect(() => {
-    if (!width || count < 2) return
+    if (!width || count < 2 || waiting || peeked.current) return
     const toward = index < count - 1 ? -1 : 1
     const base = -index * step
     const timer = window.setTimeout(() => {
+      peeked.current = true
       animate(x, [base, base + toward * 56, base], { duration: 0.9, times: [0, 0.4, 1], ease: [EASE_IN_OUT, [0.34, 1.56, 0.64, 1]] })
-    }, 650)
+    }, 2000)
     return () => clearTimeout(timer)
-  }, [width > 0]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [width > 0, waiting]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const go = (next: number) => {
     const target = Math.max(0, Math.min(count - 1, next))
@@ -196,7 +172,7 @@ export function GroupCarousel({ groups, me, onOpen, onNewGroup }: { groups: Grou
       >
         {groups.map((group, i) => (
           <div key={group.id} className="h-full shrink-0" style={{ width }} aria-hidden={i !== index}>
-            <GroupSlide group={group} me={me} index={i} count={count} onOpen={() => onOpen(group.id)} />
+            <GroupSlide group={group} me={me} index={i} count={count} onOpen={() => onOpen(group.id)} onReelDone={i === index ? () => setReelDone(true) : undefined} />
           </div>
         ))}
         <div className="h-full shrink-0" style={{ width }} aria-hidden={index !== count - 1}>

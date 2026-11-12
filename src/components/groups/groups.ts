@@ -9,7 +9,7 @@ export type Pattern = "drops" | "stripes" | "dots"
 export type Cover = { kind: RatKind; pattern: Pattern; photo?: string }
 
 /** Someone else in the group. Friends are sample data for now: there is no backend. */
-export type Member = { id: string; name: string; checkins: number[] }
+export type Member = { id: string; name: string; checkins: number[]; /** Profile photo URL. */ photo?: string }
 
 export type Group = {
   id: string
@@ -27,6 +27,8 @@ export type Group = {
   checkins: number[]
   /** Everyone else in the group, if anyone. */
   members?: Member[]
+  /** Check-in instants, newest first. */
+  posts?: Post[]
 }
 
 /** Prototype stand-in until workouts carry a real length. */
@@ -43,16 +45,19 @@ export function score(scoring: Scoring, checkins: number[]) {
   return checkins.length * MINUTES_PER_CHECKIN
 }
 
-export const points = (group: Group) => score(group.scoring, group.checkins)
+/** Check-ins that count: the group can vote one down (see contested), and then it scores nothing. */
+export const counted = (group: Group, by: string, checkins: number[]) => checkins.filter((t) => !(group.posts ?? []).some((p) => p.by === by && p.at === t && contested(p)))
+
+export const points = (group: Group) => score(group.scoring, counted(group, "me", group.checkins))
 
 /** Short unit for tight spaces like ranking rows. */
 export const UNIT_SHORT: Record<Scoring, string> = { days: "dias", checkins: "check-ins", minutes: "min" }
 
-export type Standing = { id: string; name: string; me: boolean; points: number; rank: number }
+export type Standing = { id: string; name: string; me: boolean; points: number; rank: number; photo?: string }
 
 /** Everyone in the group, best first. Ties share a place. */
 export function ranking(group: Group, myName: string): Standing[] {
-  const all = [{ id: "me", name: myName || "Você", me: true, points: points(group) }, ...(group.members ?? []).map((m) => ({ id: m.id, name: m.name, me: false, points: score(group.scoring, m.checkins) }))]
+  const all = [{ id: "me", name: myName || "Você", me: true, points: points(group) }, ...(group.members ?? []).map((m) => ({ id: m.id, name: m.name, photo: m.photo, me: false, points: score(group.scoring, counted(group, m.id, m.checkins)) }))]
   all.sort((a, b) => b.points - a.points || Number(b.me) - Number(a.me))
   return all.map((entry) => ({ ...entry, rank: all.findIndex((other) => other.points === entry.points) + 1 }))
 }
@@ -62,9 +67,9 @@ export const myRank = (group: Group) => ranking(group, "").find((s) => s.me)!.ra
 /** Friends (across all groups, counted once) with a check-in today. */
 export function friendsToday(groups: Group[]) {
   const today = dayKey(Date.now())
-  const names = new Map<string, string>()
-  for (const g of groups) for (const m of g.members ?? []) if (m.checkins.some((t) => dayKey(t) === today)) names.set(m.name, m.name)
-  return [...names.values()]
+  const people = new Map<string, { name: string; photo?: string }>()
+  for (const g of groups) for (const m of g.members ?? []) if (m.checkins.some((t) => dayKey(t) === today)) people.set(m.id, { name: m.name, photo: m.photo })
+  return [...people.values()]
 }
 
 export const pointsLabel = (group: Group) => {
@@ -179,4 +184,44 @@ export function streak(groups: Group[]) {
   const last = days[days.length - 1]
   const current = last !== undefined && today - last <= 1 ? run : 0
   return { current, best }
+}
+
+/** A sticker someone stuck on a check-in, placed as a share of the photo's size. */
+export type Sticker = { id: string; by: string; emoji: string; x: number; y: number; rotate: number }
+
+/**
+ * A check-in instant: a quick photo or short video taken at the gym. People in the
+ * group vote whether it counts (yay or nay) and stick stickers on it.
+ * `by` is "me" or a member's id. Videos live only for this visit (blob URLs).
+ */
+export type Post = {
+  id: string
+  by: string
+  at: number
+  media: { kind: "photo" | "video"; src: string }
+  yay: string[]
+  nay: string[]
+  stickers: Sticker[]
+}
+
+export const STICKERS = ["🔥", "💪", "🏆", "👏", "😤", "🐀", "💯", "😂", "🥵", "👑"]
+
+/** Instants stay up for a day, like the moment they capture. */
+export const INSTANT_LIFE = 24 * 3_600_000
+export const liveInstants = (group: Group, now = Date.now()) => (group.posts ?? []).filter((p) => now - p.at < INSTANT_LIFE).sort((a, b) => b.at - a.at)
+
+/** Enough people said it doesn't count: more nays than yays, and at least two. */
+export const contested = (post: Post) => post.nay.length >= 2 && post.nay.length > post.yay.length
+
+export function author(group: Group, id: string, myName: string) {
+  if (id === "me") return { name: myName || "Você", photo: undefined as string | undefined, me: true }
+  const m = group.members?.find((x) => x.id === id)
+  return { name: m?.name ?? "Alguém", photo: m?.photo, me: false }
+}
+
+export function timeAgo(at: number, now = Date.now()) {
+  const min = Math.floor((now - at) / 60_000)
+  if (min < 1) return "agora"
+  if (min < 60) return `há ${min} min`
+  return `há ${Math.floor(min / 60)} h`
 }

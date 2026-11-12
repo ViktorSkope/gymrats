@@ -47,15 +47,15 @@ export function CheckinCalendar({ checkins }: { checkins: number[] }) {
     <div>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-[15px] font-semibold">Dias de treino</p>
-          <p className="text-[13px] text-ink/50">Últimas {WEEKS} semanas</p>
+          <p className="text-[14px] font-semibold">Dias de treino</p>
+          <p className="text-[12px] text-ink/50">Últimas {WEEKS} semanas</p>
         </div>
-        <motion.p key={total} className="text-[34px] leading-none font-semibold tracking-[-0.03em] tabular-nums" initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2, ease: EASE_IN_OUT }}>
+        <motion.p key={total} className="text-[28px] leading-none font-semibold tracking-[-0.03em] tabular-nums" initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.2, ease: EASE_IN_OUT }}>
           {total}
         </motion.p>
       </div>
 
-      <div className="mt-3 grid gap-x-[3px]" style={{ gridTemplateColumns: `14px repeat(${WEEKS}, minmax(0, 1fr))` }} role="img" aria-label={`${total} dias de treino nas últimas ${WEEKS} semanas`}>
+      <div className="mt-2 grid gap-x-[3px]" style={{ gridTemplateColumns: `14px repeat(${WEEKS}, minmax(0, 1fr))` }} role="img" aria-label={`${total} dias de treino nas últimas ${WEEKS} semanas`}>
         <div className="grid grid-rows-7 gap-y-[3px]" aria-hidden="true">
           {DAY_LABELS.map((label, i) => (
             <span key={i} className="flex items-center text-[10px] leading-none text-ink/40">
@@ -72,7 +72,7 @@ export function CheckinCalendar({ checkins }: { checkins: number[] }) {
               return (
                 <motion.span
                   key={day.getTime()}
-                  className={`aspect-square rounded-[4px] ${count >= 2 ? "bg-[#A8291E]" : count ? "bg-rat" : future ? "bg-[#E6E4E7]/45" : "bg-[#E6E4E7]"} ${isToday ? "ring-[1.5px] ring-ink/70 ring-offset-1 ring-offset-paper" : ""}`}
+                  className={`h-[clamp(10px,1.6dvh,15px)] rounded-[3.5px] ${count >= 2 ? "bg-[#A8291E]" : count ? "bg-rat" : future ? "bg-[#E6E4E7]/45" : "bg-[#E6E4E7]"} ${isToday ? "ring-[1.5px] ring-ink/70 ring-offset-1 ring-offset-paper" : ""}`}
                   initial={{ opacity: 0, scale: 0.6 }}
                   animate={{ opacity: 1, scale: 1 }}
                   // Columns fill in left to right, 30ms apart.
@@ -84,7 +84,7 @@ export function CheckinCalendar({ checkins }: { checkins: number[] }) {
         ))}
         <span />
         {monthAt.map((label, w) => (
-          <span key={w} className="mt-1.5 overflow-visible text-[11px] leading-none whitespace-nowrap text-ink/45">
+          <span key={w} className="mt-1 overflow-visible text-[10px] leading-none whitespace-nowrap text-ink/45">
             {label}
           </span>
         ))}

@@ -1,13 +1,14 @@
 import { ChevronRightIcon } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { CreateGroup } from "@/components/groups/CreateGroup"
 import { GroupCover } from "@/components/groups/GroupCover"
 import { GroupDetail } from "@/components/groups/GroupDetail"
 import { GroupInvite } from "@/components/groups/GroupInvite"
-import { dayNumber, friendsToday, pointsLabel, streak, typeLabel, type Group } from "@/components/groups/groups"
-import { RestingRat } from "@/components/rats/RestingRat"
+import { InstantCamera } from "@/components/checkin/InstantCamera"
+import { STICKERS, dayNumber, friendsToday, pointsLabel, streak, typeLabel, type Group, type Post } from "@/components/groups/groups"
+import { SleepyRat } from "@/components/rats/SleepyRat"
 import { useStored } from "@/hooks/useStored"
 import { PRESS, SHARED, close, open, settle, sheet } from "@/motion"
 import { themeStyle, type RatKind } from "@/theme"
@@ -69,6 +70,45 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
   }, [])
 
   const update = (group: Group) => setGroups((all) => all.map((g) => (g.id === group.id ? group : g)))
+
+  // Check-in = an instant. The camera opens with the given groups ticked.
+  const [camera, setCamera] = useState<string[] | null>(null)
+  const closeCamera = () => setCamera(null)
+  const timers = useRef<number[]>([])
+  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+
+  const editPost = (groupId: string, postId: string, change: (post: Post) => Post) =>
+    setGroups((all) => all.map((g) => (g.id === groupId ? { ...g, posts: (g.posts ?? []).map((p) => (p.id === postId ? change(p) : p)) } : g)))
+
+  const post = (media: Post["media"], groupIds: string[]) => {
+    const at = Date.now()
+    const made = groupIds.map((groupId) => ({ groupId, post: { id: crypto.randomUUID(), by: "me", at, media, yay: [], nay: [], stickers: [] } as Post }))
+    setGroups((all) =>
+      all.map((g) => {
+        const mine = made.find((m) => m.groupId === g.id)
+        return mine ? { ...g, checkins: [...g.checkins, at], posts: [mine.post, ...(g.posts ?? [])] } : g
+      }),
+    )
+    setCamera(null)
+
+    // No backend: a few friends react over the next seconds, so the vote and stickers come alive.
+    for (const { groupId, post: p } of made) {
+      const friends = [...(groups.find((g) => g.id === groupId)?.members ?? [])].sort(() => Math.random() - 0.5).slice(0, 4)
+      friends.forEach((friend, i) => {
+        timers.current.push(
+          window.setTimeout(() => {
+            editPost(groupId, p.id, (cur) => {
+              const sticker = i % 2 === 1 ? [{ id: crypto.randomUUID(), by: friend.id, emoji: STICKERS[Math.floor(Math.random() * STICKERS.length)], x: 0.2 + Math.random() * 0.6, y: 0.15 + Math.random() * 0.55, rotate: Math.round(Math.random() * 30 - 15) }] : []
+              // Mostly yays; now and then someone isn't convinced.
+              const nay = i === 3 && Math.random() < 0.5
+              return { ...cur, yay: nay ? cur.yay : [...cur.yay, friend.id], nay: nay ? [...cur.nay, friend.id] : cur.nay, stickers: [...cur.stickers, ...sticker] }
+            })
+          }, 2500 + i * 2200),
+        )
+      })
+    }
+  }
+
   const startCreate = () => {
     setJoining(false)
     setView({ screen: "create" })
@@ -87,7 +127,7 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
       ) : (
         <>
           {/* Nothing to compete in yet, so the rat sleeps. */}
-          <RestingRat fur="#B42F23" shade="#7E1D14" className="pointer-events-auto absolute top-3 right-4 w-[clamp(84px,24vw,104px)]" />
+          <SleepyRat className="absolute top-3 right-3 w-[clamp(96px,28vw,124px)]" />
           <p className="mt-3 max-w-[64%] text-[17px] leading-snug">Você ainda não tem grupos. Crie um ou entre em um grupo.</p>
         </>
       )}
@@ -105,14 +145,14 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
   return (
     <motion.div className="theme-fade absolute inset-0 bg-ink" style={themeStyle(kind)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
       <div inert={joining || view !== null} className="flex h-full flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto px-[7px] pt-[max(6px,env(safe-area-inset-top))] pb-2">
+        <div className="min-h-0 flex-1 overflow-y-auto px-[7px] pt-[max(6px,var(--sat))] pb-2">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={tab} className={`flex flex-col gap-2 ${tab === "home" ? "h-full min-h-[560px]" : ""}`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
               {tab === "home" && (
               <>
                 {/* Sized to fit one screen: the calendar and headline scale with the height, the groups take the rest. */}
                 <motion.section
-                  className="shrink-0 rounded-[30px] bg-paper px-5 pt-[clamp(16px,2.6dvh,24px)] pb-[clamp(14px,2.2dvh,20px)]"
+                  className="shrink-0 rounded-[30px] bg-paper px-5 pt-[clamp(14px,2dvh,22px)] pb-[clamp(12px,1.8dvh,18px)]"
                   initial={{ y: -24, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -120,22 +160,22 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
                   <motion.div {...settle(0, 0.1)}>
                     <CheckinCalendar checkins={groups.flatMap((g) => g.checkins)} />
                   </motion.div>
-                  <motion.p className="mt-[clamp(14px,3dvh,32px)] text-[15px] font-semibold" {...settle(0, 0.15)}>
+                  <motion.p className="mt-[clamp(10px,2dvh,24px)] text-[14px] font-semibold" {...settle(0, 0.15)}>
                     Visão Geral
                   </motion.p>
-                  <motion.h1 className="mt-2 text-[clamp(30px,4.8dvh,46px)] leading-[1.02] tracking-[-0.035em] text-balance" {...settle(1, 0.15)}>
+                  <motion.h1 className="mt-1.5 text-[clamp(26px,3.9dvh,40px)] leading-[1.02] tracking-[-0.035em] text-balance" {...settle(1, 0.15)}>
                     {headline(checkins, days.current)}
                   </motion.h1>
-                  <motion.p className="mt-[clamp(10px,1.8dvh,16px)] inline-flex h-[34px] items-center rounded-full bg-[#E6E4E7] px-4 text-[16px] tabular-nums" {...settle(2, 0.15)}>
+                  <motion.p className="mt-[clamp(8px,1.4dvh,14px)] inline-flex h-[30px] items-center rounded-full bg-[#E6E4E7] px-3.5 text-[14px] tabular-nums" {...settle(2, 0.15)}>
                     Dias seguidos: {days.current}/{days.best}
                   </motion.p>
                 </motion.section>
-                <FriendsStrip names={friendsToday(groups)} />
+                <FriendsStrip people={friendsToday(groups)} />
                 <GroupCarousel groups={groups} me={name} onOpen={(id) => setView({ screen: "group", id })} onNewGroup={() => setJoining(true)} />
               </>
             )}
             {tab === "groups" && groupsCard}
-              {tab === "checkin" && <CheckinView groups={groups} onCheckIn={(group) => update({ ...group, checkins: [...group.checkins, Date.now()] })} onNewGroup={() => setJoining(true)} />}
+              {tab === "checkin" && <CheckinView groups={groups} onCheckIn={(group) => setCamera([group.id])} onNewGroup={() => setJoining(true)} />}
               {tab === "profile" && <ProfileView name={name} plan={plan} groups={groups} onReset={onRestart} />}
             </motion.div>
           </AnimatePresence>
@@ -164,7 +204,15 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
         )}
         {view?.screen === "group" && current && (
           <motion.div key={`group-${current.id}`} className="absolute inset-0 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
-            <GroupDetail group={current} morph={view.fromList} me={name} onBack={() => setView(null)} onInvite={() => setView({ screen: "invite", id: current.id })} onChange={update} />
+            <GroupDetail group={current} morph={view.fromList} me={name} onBack={() => setView(null)} onInvite={() => setView({ screen: "invite", id: current.id })} onChange={update} onCheckIn={() => setCamera([current.id])} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {camera && (
+          <motion.div key="camera" className="absolute inset-0 z-30" {...sheet}>
+            <InstantCamera groups={groups} preselect={camera} onClose={closeCamera} onPost={post} />
           </motion.div>
         )}
       </AnimatePresence>

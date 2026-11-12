@@ -7,6 +7,7 @@ import { haptic } from "@/hooks/useHaptic"
 import { PRESS, SHARED, popover, settle } from "@/motion"
 import { DURATIONS, GROUP_TYPES, SCORING, makeCode, photoToDataUrl, shuffleCover, type Cover, type Group, type GroupType, type Scoring } from "./groups"
 import { GroupCover } from "./GroupCover"
+import { Card, CardLabel, FIELD, FLOAT_SPACE, FloatingAction, RoundButton } from "@/components/ui/kit"
 
 function CoverButton({ icon, children, onClick }: { icon: ReactNode; children: ReactNode; onClick: () => void }) {
   return (
@@ -28,7 +29,7 @@ function ScoringPicker({ value, onChange }: { value: Scoring; onChange: (value: 
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-14 w-full items-center gap-3 px-4 text-left"
+        className="flex h-14 w-full items-center gap-3 px-5 text-left"
         whileTap={PRESS}
       >
         <MedalIcon className="size-5 shrink-0 text-ink/70" />
@@ -76,7 +77,7 @@ function ScoringPicker({ value, onChange }: { value: Scoring; onChange: (value: 
 }
 
 /**
- * New group, in one scroll: cover, type, name, and the few options that matter.
+ * New group, in one scroll of cards: cover, type, name, and the few options that matter.
  * Everything has a sensible default, so a name is the only thing you must give.
  */
 export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCreate: (group: Group) => void }) {
@@ -126,17 +127,17 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <header className="flex h-14 shrink-0 items-center px-2 pt-[env(safe-area-inset-top)]">
-        <motion.button type="button" aria-label="Fechar" onClick={onClose} className="flex size-11 items-center justify-center rounded-full" whileTap={PRESS}>
-          <XIcon className="size-6" />
-        </motion.button>
-        <h1 className="flex-1 pr-11 text-center text-[17px] font-semibold">Novo grupo</h1>
+    <div className="relative flex h-full flex-col bg-ink">
+      <header className="flex shrink-0 items-center gap-3 px-[7px] pt-[max(8px,var(--sat))] pb-2">
+        <RoundButton label="Fechar" onClick={onClose}>
+          <XIcon className="size-5" />
+        </RoundButton>
+        <h1 className="flex-1 pr-14 text-center text-[17px] font-semibold text-white">Novo grupo</h1>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <motion.div {...settle(0)}>
-          <GroupCover cover={cover} className="h-[168px] rounded-[28px]">
+      <div className={`flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-[7px] ${FLOAT_SPACE}`}>
+        <motion.div className="shrink-0" {...settle(0)}>
+          <GroupCover cover={cover} className="h-[176px] rounded-[30px]">
             <div className="absolute top-3 left-3 flex gap-2">
               <CoverButton
                 icon={<ShuffleIcon className="size-4" />}
@@ -155,8 +156,9 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
           <input ref={file} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={(event) => pickPhoto(event.target.files?.[0])} />
         </motion.div>
 
-        <motion.div {...settle(1)} className="mt-5">
-          <div role="radiogroup" aria-label="Tipo de grupo" className="flex rounded-[20px] bg-ink/5 p-1">
+        <Card index={1}>
+          <CardLabel>Tipo</CardLabel>
+          <div role="radiogroup" aria-label="Tipo de grupo" className="mt-3 flex rounded-[20px] bg-[#EDEBEE] p-1">
             {GROUP_TYPES.map((option) => {
               const selected = option.id === type
               const Icon = option.id === "challenge" ? MedalIcon : UsersIcon
@@ -174,8 +176,8 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
                   whileTap={PRESS}
                 >
                   {selected && <motion.span layoutId={SHARED.groupType} className="absolute inset-0 rounded-[16px] bg-ink" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
-                  <Icon className={`relative size-[18px] transition-colors ${selected ? "text-white" : "text-ink/70"}`} />
-                  <span className={`relative transition-colors ${selected ? "text-white" : "text-ink/70"}`}>{option.label}</span>
+                  <Icon className={`relative size-[18px] transition-colors ${selected ? "text-white" : "text-ink/60"}`} />
+                  <span className={`relative transition-colors ${selected ? "text-white" : "text-ink/60"}`}>{option.label}</span>
                 </motion.button>
               )
             })}
@@ -185,9 +187,10 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
               {hint}
             </motion.p>
           </AnimatePresence>
-        </motion.div>
+        </Card>
 
-        <motion.div {...settle(2)} className="mt-5 overflow-hidden rounded-[20px] border border-ink/12 focus-within:border-ink">
+        <Card index={2}>
+          <CardLabel>Nome e descrição</CardLabel>
           <label htmlFor="group-name" className="sr-only">
             Nome do grupo
           </label>
@@ -201,9 +204,8 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
             autoComplete="off"
             enterKeyHint="next"
             aria-invalid={triedEmpty && !ready}
-            className="h-14 w-full px-4 text-[17px] outline-none placeholder:text-ink/35"
+            className={`${FIELD} mt-3 h-[52px] aria-invalid:ring-2 aria-invalid:ring-[#D23A2C]`}
           />
-          <div className="mx-4 h-px bg-ink/10" />
           <label htmlFor="group-description" className="sr-only">
             Descrição (opcional)
           </label>
@@ -214,55 +216,53 @@ export function CreateGroup({ onClose, onCreate }: { onClose: () => void; onCrea
             placeholder="Descrição (opcional)"
             maxLength={160}
             rows={3}
-            className="block w-full resize-none px-4 py-3.5 text-[16px] outline-none placeholder:text-ink/35"
+            className={`${FIELD} mt-2 block resize-none py-3.5 text-[16px]`}
           />
-        </motion.div>
-        <p className="mt-1.5 min-h-5 px-1 text-[13px] text-[#C0392B]" aria-live="polite">
-          {triedEmpty && !ready ? "Dê um nome ao grupo, com pelo menos 2 letras." : ""}
-        </p>
+          <p className="mt-1.5 min-h-5 px-1 text-[13px] text-[#C0392B]" aria-live="polite">
+            {triedEmpty && !ready ? "Dê um nome ao grupo, com pelo menos 2 letras." : ""}
+          </p>
+        </Card>
 
-        <motion.div {...settle(3)}>
-          <h2 className="mt-2 px-1 text-[14px] font-medium text-ink/55">Opções</h2>
-          <div className="mt-2 rounded-[20px] border border-ink/12">
-            <ScoringPicker value={scoring} onChange={setScoring} />
-            <AnimatePresence initial={false}>
-              {type === "challenge" && (
-                <motion.div className="overflow-hidden" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0, transition: { duration: 0.16 } }} transition={{ duration: 0.2 }}>
-                  <div className="mx-4 h-px bg-ink/10" />
-                  <div className="flex items-center gap-3 px-4 pt-4 pb-1">
-                    <TimerIcon className="size-5 text-ink/70" />
-                    <span className="text-[16px]">Duração</span>
-                  </div>
-                  <div role="radiogroup" aria-label="Duração" className="flex gap-2 px-4 pt-2 pb-4">
-                    {DURATIONS.map((option) => (
-                      <motion.button
-                        key={option}
-                        type="button"
-                        role="radio"
-                        aria-checked={option === days}
-                        onClick={() => {
-                          haptic()
-                          setDays(option)
-                        }}
-                        className={`h-10 flex-1 rounded-[14px] border text-[15px] font-medium transition-colors ${option === days ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70"}`}
-                        whileTap={PRESS}
-                      >
-                        {option} dias
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+        <Card index={3} className="px-0 pt-4 pb-1">
+          <CardLabel className="px-5">Opções</CardLabel>
+          <ScoringPicker value={scoring} onChange={setScoring} />
+          <AnimatePresence initial={false}>
+            {type === "challenge" && (
+              <motion.div className="overflow-hidden" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0, transition: { duration: 0.16 } }} transition={{ duration: 0.2 }}>
+                <div className="mx-5 h-px bg-ink/10" />
+                <div className="flex items-center gap-3 px-5 pt-4 pb-1">
+                  <TimerIcon className="size-5 text-ink/70" />
+                  <span className="text-[16px]">Duração</span>
+                </div>
+                <div role="radiogroup" aria-label="Duração" className="flex gap-2 px-5 pt-2 pb-4">
+                  {DURATIONS.map((option) => (
+                    <motion.button
+                      key={option}
+                      type="button"
+                      role="radio"
+                      aria-checked={option === days}
+                      onClick={() => {
+                        haptic()
+                        setDays(option)
+                      }}
+                      className={`h-10 flex-1 rounded-[14px] text-[15px] font-medium transition-colors ${option === days ? "bg-ink text-white" : "bg-[#EDEBEE] text-ink/70"}`}
+                      whileTap={PRESS}
+                    >
+                      {option} dias
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
       </div>
 
-      <div className="shrink-0 border-t border-ink/6 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom))]">
-        <PrimaryButton onClick={create} disabled={!ready}>
+      <FloatingAction>
+        <PrimaryButton onClick={create} disabled={!ready} className="h-14 shadow-[0_12px_32px_rgb(0_0_0/0.45)]">
           {type === "challenge" ? "Criar desafio" : "Criar clube"}
         </PrimaryButton>
-      </div>
+      </FloatingAction>
     </div>
   )
 }

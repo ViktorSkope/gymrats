@@ -32,12 +32,12 @@ export function Ready({ title, onDone }: { title: string; onDone: () => void }) 
         className="pointer-events-none absolute inset-0 size-full object-cover"
       />
 
-      <div className="relative flex min-h-0 flex-1 items-center justify-center pt-[max(24px,env(safe-area-inset-top))]">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center pt-[max(24px,var(--sat))]">
         <MuscleRat className="h-[min(44dvh,360px)] w-auto" />
       </div>
 
       <motion.section
-        className="relative mx-[9px] mb-[max(7px,env(safe-area-inset-bottom))] rounded-[30px] bg-paper px-8 pt-8 pb-6"
+        className="relative mx-[9px] mb-[max(7px,var(--sab))] rounded-[30px] bg-paper px-8 pt-8 pb-6"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%", transition: { duration: CLOSE, ease: EASE_IN_OUT } }}

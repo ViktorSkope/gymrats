@@ -6,6 +6,7 @@ import { Paywall, type Plan } from "@/components/onboarding/Paywall"
 import { PreparingSheet } from "@/components/onboarding/PreparingSheet"
 import { Ready } from "@/components/onboarding/Ready"
 import { Dashboard } from "@/components/home/Dashboard"
+import { StatusBar } from "@/components/StatusBar"
 import { SheetScreen, type RatMood } from "@/components/onboarding/SheetScreen"
 import { SignupSheet } from "@/components/onboarding/SignupSheet"
 import { Splash } from "@/components/onboarding/Splash"
@@ -21,6 +22,9 @@ const stepFromHash = (): Step | null => {
   const hash = window.location.hash.slice(1)
   return (STEPS as readonly string[]).includes(hash) && hash !== "splash" ? (hash as Step) : null
 }
+
+// The desktop phone frame loads the app in an iframe; only there do we draw an iPhone status bar.
+const inFrame = window.self !== window.top
 
 const go = (next: Step) => {
   window.location.hash = next
@@ -68,6 +72,11 @@ export default function App() {
     setGoal(null)
     setName("")
     setPlan(null)
+    try {
+      sessionStorage.removeItem("gymrats.photo")
+    } catch {
+      // Storage blocked: no photo saved.
+    }
     try {
       sessionStorage.removeItem("gymrats.groups")
     } catch {
@@ -120,6 +129,7 @@ export default function App() {
           {screen === "ready" && <Ready key="ready" title={(chosen ?? GOALS[0]).ready} onDone={() => go("home")} />}
           {screen === "home" && <Dashboard key="home" kind="red" name={name} onRestart={restart} />}
         </AnimatePresence>
+        {inFrame && <StatusBar />}
       </main>
     </MotionConfig>
   )

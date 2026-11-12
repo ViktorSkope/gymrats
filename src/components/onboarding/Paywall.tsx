@@ -113,7 +113,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
       {/* A warm glow behind the header, the only colour outside the cards. */}
       {/* The offer sits on a light card over the dark app, like a sheet pulled up for a moment. */}
       <motion.div
-        className="absolute inset-x-[9px] top-[max(14px,calc(env(safe-area-inset-top)+6px))] bottom-[max(7px,env(safe-area-inset-bottom))] flex flex-col overflow-hidden rounded-[30px] bg-paper"
+        className="absolute inset-x-[9px] top-[max(14px,calc(var(--sat)+6px))] bottom-[max(7px,var(--sab))] flex flex-col overflow-hidden rounded-[30px] bg-paper"
         initial={{ y: 60 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 32 }}

@@ -95,3 +95,14 @@
     --rat-bg 450ms ease-in-out,
     --on-rat 450ms ease-in-out;
 }
+
+/* Safe areas. On a phone they come from the device. In the desktop phone frame
+   they match an iPhone's status bar and home indicator, which the app draws. */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+}
+.in-frame {
+  --sat: 50px;
+  --sab: 24px;
+}

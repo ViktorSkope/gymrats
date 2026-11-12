@@ -1,29 +1,14 @@
-import { CheckIcon, DumbbellIcon } from "lucide-react"
+import { CameraIcon, CheckIcon, DumbbellIcon } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
+import { RatFace } from "@/components/Avatar"
+import { useStored } from "@/hooks/useStored"
 import { GroupCover } from "@/components/groups/GroupCover"
-import { activeDays, checkedInToday, pointsLabel, streak, type Group } from "@/components/groups/groups"
+import { activeDays, checkedInToday, photoToDataUrl, pointsLabel, streak, type Group } from "@/components/groups/groups"
 import { loadSample } from "@/components/groups/sample"
-import { PLAIN } from "@/components/rats/paths"
 import { haptic } from "@/hooks/useHaptic"
 import { PRESS, close, open, settle } from "@/motion"
-
-/** Your rat's face on a light disc: the profile picture. */
-export function Avatar() {
-  return (
-    <svg viewBox="70 230 600 600" className="size-full" aria-hidden="true">
-      <rect x="70" y="230" width="600" height="600" fill="#F7F5F8" />
-      <path d={PLAIN.body} fill="#D23A2C" fillRule="evenodd" />
-      {[286.5, 449.7].map((cx) => (
-        <g key={cx}>
-          <circle cx={cx} cy={397} r={62} fill="#fff" />
-          <circle cx={cx} cy={397} r={44} fill="#1D1D1D" />
-        </g>
-      ))}
-    </svg>
-  )
-}
 
 /** The light card every tab is built on. */
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -114,12 +99,28 @@ export function ProfileView({ name, plan, groups, onReset }: { name: string; pla
     return () => clearTimeout(timer)
   }, [confirming])
 
+  const [photo, setPhoto] = useStored<string | null>("photo", null)
+  const file = useRef<HTMLInputElement>(null)
+  const pick = async (picked: File | undefined) => {
+    if (!picked) return
+    try {
+      setPhoto(await photoToDataUrl(picked, 400))
+    } catch {
+      // Unreadable file: keep the current picture.
+    }
+  }
+
   return (
     <Panel>
       <div className="flex items-center gap-4">
-        <span className="block size-[72px] overflow-hidden rounded-full ring-[3px] ring-rat">
-          <Avatar />
-        </span>
+        {/* Tap your picture to change it. */}
+        <motion.button type="button" aria-label={photo ? "Trocar foto" : "Adicionar foto"} onClick={() => file.current?.click()} className="relative block size-[72px] shrink-0 rounded-full" whileTap={PRESS}>
+          <span className="block size-full overflow-hidden rounded-full">{photo ? <img src={photo} alt="" className="size-full object-cover" draggable={false} /> : <RatFace />}</span>
+          <span className="absolute -right-1 -bottom-1 flex size-7 items-center justify-center rounded-full bg-ink text-white ring-2 ring-paper">
+            <CameraIcon className="size-3.5" />
+          </span>
+        </motion.button>
+        <input ref={file} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={(event) => pick(event.target.files?.[0])} />
         <div className="min-w-0">
           <h1 className="truncate text-[28px] leading-tight tracking-[-0.02em]">{name || "Você"}</h1>
           <p className="mt-1 inline-flex h-7 items-center rounded-full bg-[#E6E4E7] px-3 text-[14px]">
