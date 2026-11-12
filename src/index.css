@@ -1,0 +1,97 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/instrument-sans";
+
+@theme {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #1e1e1e;
+  --color-cream: #ffe8d9;
+  --color-sweat: #e8695a;
+  --color-check: #3b7f5c;
+  --color-splash-drop: #2c2c2c;
+}
+
+/* The chosen rat's colours. Registered so a theme change fades instead of snapping. */
+@property --rat {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d33a2c;
+}
+@property --rat-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffe8d9;
+}
+@property --on-rat {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@theme inline {
+  --color-rat: var(--rat);
+  --color-rat-bg: var(--rat-bg);
+  --color-on-rat: var(--on-rat);
+  --color-rat-title: var(--rat-title);
+}
+
+@layer base {
+  html {
+    @apply bg-ink font-sans text-ink antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* A dark grey dot is the cursor everywhere, like a fingertip. */
+  *,
+  *::before,
+  *::after {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='8' fill='%23404040' fill-opacity='.8'/%3E%3C/svg%3E") 10 10,
+      auto !important;
+  }
+  button {
+    touch-action: manipulation;
+  }
+
+  /* Feel like an app, not a page: no rubber-band scroll or pull-to-refresh on the
+     page itself, no long-press text selection or callouts, no double-tap zoom. */
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+  /* Scrolling areas inside screens still scroll, without dragging the page along. */
+  .overflow-y-auto {
+    overscroll-behavior: contain;
+  }
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  img,
+  svg,
+  video {
+    -webkit-user-drag: none;
+  }
+}
+
+.in-frame,
+.in-frame * {
+  scrollbar-width: none;
+}
+
+.theme-fade {
+  transition:
+    --rat 450ms ease-in-out,
+    --rat-bg 450ms ease-in-out,
+    --on-rat 450ms ease-in-out;
+}
