@@ -1,6 +1,6 @@
 import { RotateCcwIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react"
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 
 import { PersonAvatar } from "@/components/Avatar"
 import { author, contested, timeAgo, type Group, type Post } from "@/components/groups/groups"
@@ -93,6 +93,26 @@ function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Gr
   const press = useRef<{ x: number; y: number; timer: number; dragging: boolean; trail: { x: number; t: number }[] } | null>(null)
   const leaving = useRef(false)
 
+  // While you swipe or pick a sticker, the page must not scroll under your finger.
+  // Touch: a non-passive touchmove that cancels scrolling. Mouse in the desktop frame:
+  // the drag-to-scroll helper checks the same flag on the document.
+  const locked = useRef(false)
+  const lock = (on: boolean) => {
+    locked.current = on
+    if (on) document.documentElement.dataset.scrollLock = ""
+    else delete document.documentElement.dataset.scrollLock
+  }
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const block = (event: TouchEvent) => locked.current && event.cancelable && event.preventDefault()
+    el.addEventListener("touchmove", block, { passive: false })
+    return () => {
+      el.removeEventListener("touchmove", block)
+      delete document.documentElement.dataset.scrollLock
+    }
+  }, [])
+
   const fly = (kind: "yay" | "nay" | "skip", direction: number) => {
     if (leaving.current) return
     leaving.current = true
@@ -118,6 +138,7 @@ function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Gr
     const timer = window.setTimeout(() => {
       if (!press.current || press.current.dragging) return
       haptic(15)
+      lock(true)
       setPicker({ x: p.x, y: p.y, up: p.y > 150, hover: null })
     }, HOLD_MS)
     press.current = { x: event.clientX, y: event.clientY, timer, dragging: false, trail: [{ x: event.clientX, t: event.timeStamp }] }
@@ -144,10 +165,19 @@ function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Gr
       }
       return
     }
-    // Moving (not holding still) means a swipe: the card follows the finger sideways.
-    if (!press.current.dragging && Math.hypot(event.clientX - press.current.x, event.clientY - press.current.y) > MOVE_SLOP) {
-      press.current.dragging = true
+    // Moving (not holding still) decides the gesture: sideways is a swipe, and the page
+    // locks; up or down is a scroll, and the card lets go.
+    const dx = event.clientX - press.current.x
+    const dy = event.clientY - press.current.y
+    if (!press.current.dragging && Math.hypot(dx, dy) > MOVE_SLOP) {
       clearTimeout(press.current.timer)
+      if (Math.abs(dy) > Math.abs(dx)) {
+        press.current = null
+        event.currentTarget.releasePointerCapture(event.pointerId)
+        return
+      }
+      press.current.dragging = true
+      lock(true)
     }
     if (press.current.dragging && !leaving.current) {
       x.set(event.clientX - press.current.x)
@@ -156,6 +186,7 @@ function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Gr
   }
 
   const onPointerUp = (event: ReactPointerEvent) => {
+    lock(false)
     const current = press.current
     if (current) clearTimeout(current.timer)
     press.current = null

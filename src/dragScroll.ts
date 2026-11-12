@@ -49,6 +49,8 @@ export function installDragScroll() {
     let velocity = 0 // px per ms along the axis, in scroll direction.
 
     const move = (event: PointerEvent) => {
+      // A swipe card (or sticker picker) has the gesture: don't scroll under it.
+      if ("scrollLock" in document.documentElement.dataset) return stop()
       if (!axis) {
         const dx = event.clientX - down.clientX
         const dy = event.clientY - down.clientY
