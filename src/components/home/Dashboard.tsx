@@ -13,6 +13,7 @@ import { PLAIN } from "@/components/rats/paths"
 import { useStored } from "@/hooks/useStored"
 import { PRESS, SHARED, close, open, popover, settle, sheet } from "@/motion"
 import { themeStyle, type RatKind } from "@/theme"
+import { CheckinCalendar } from "./CheckinCalendar"
 import { JoinGroupSheet } from "./JoinGroupSheet"
 
 type View = { screen: "create" } | { screen: "invite"; id: string } | { screen: "group"; id: string; fromList?: boolean } | null
@@ -139,7 +140,10 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
             <LogoMark className="w-[28px] text-rat" />
             <ProfileMenu name={name} onRestart={onRestart} />
           </header>
-          <div className="mt-auto">
+          <motion.div className="mt-5" {...settle(0, 0.1)}>
+            <CheckinCalendar checkins={groups.flatMap((g) => g.checkins)} />
+          </motion.div>
+          <div className="mt-auto pt-7">
             <motion.p className="text-[15px] font-semibold" {...settle(0, 0.15)}>
               Visão Geral
             </motion.p>
