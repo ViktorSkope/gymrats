@@ -1,6 +1,8 @@
 import QRCode from "qrcode"
 import { useEffect, useState, type ReactNode } from "react"
 
+import { loadSample } from "@/components/groups/sample"
+
 const BASE = window.location.origin + window.location.pathname
 
 /** Everything the prototype keeps, so it can be wiped or seeded from outside the app. */
@@ -13,7 +15,7 @@ function clearStored() {
 }
 
 /** Shortcuts for testing: jump past onboarding, or wipe everything and start from the splash. */
-function TestControls({ onSkip, onReset }: { onSkip: () => void; onReset: () => void }) {
+function TestControls({ onSkip, onSample, onReset }: { onSkip: () => void; onSample: () => void; onReset: () => void }) {
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -29,6 +31,9 @@ function TestControls({ onSkip, onReset }: { onSkip: () => void; onReset: () => 
       <button type="button" onClick={onSkip} className={`${button} bg-white text-ink shadow-sm shadow-black/5 hover:bg-white/70`}>
         Pular o onboarding
       </button>
+      <button type="button" onClick={onSample} className={`${button} bg-white text-ink shadow-sm shadow-black/5 hover:bg-white/70`}>
+        Carregar exemplo com amigos
+      </button>
       <button
         type="button"
         onClick={() => {
@@ -40,7 +45,7 @@ function TestControls({ onSkip, onReset }: { onSkip: () => void; onReset: () => 
       >
         {confirming ? "Toque de novo para apagar tudo" : "Apagar tudo e recomeçar"}
       </button>
-      <p className="text-[13px] leading-snug text-ink/50">Apagar remove nome, objetivo, plano e grupos, e volta para a abertura.</p>
+      <p className="text-[13px] leading-snug text-ink/50">O exemplo troca seus dados por 3 grupos e alguns amigos. Apagar remove nome, objetivo, plano e grupos, e volta para a abertura.</p>
     </div>
   )
 }
@@ -84,6 +89,11 @@ export function PhoneFrame() {
     load(BASE + "#home")
   }
 
+  const sample = () => {
+    loadSample()
+    load(BASE + "#home")
+  }
+
   const reset = () => {
     clearStored()
     load(BASE)
@@ -99,7 +109,7 @@ export function PhoneFrame() {
         className="aspect-[390/844] h-[min(844px,100%)] rounded-[calc(min(844px,100dvh-48px)*0.0474)] border-0 bg-ink shadow-2xl ring-1 shadow-black/15 ring-black/5"
       />
       <OpenOnPhone>
-        <TestControls onSkip={skip} onReset={reset} />
+        <TestControls onSkip={skip} onSample={sample} onReset={reset} />
       </OpenOnPhone>
     </div>
   )

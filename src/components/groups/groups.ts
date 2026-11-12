@@ -8,6 +8,9 @@ export type Pattern = "drops" | "stripes" | "dots"
 /** Either a drawn cover (a rat on a pattern) or a photo, stored as a small data URL. */
 export type Cover = { kind: RatKind; pattern: Pattern; photo?: string }
 
+/** Someone else in the group. Friends are sample data for now: there is no backend. */
+export type Member = { id: string; name: string; checkins: number[] }
+
 export type Group = {
   id: string
   name: string
@@ -20,8 +23,10 @@ export type Group = {
   access: Access
   code: string
   createdAt: number
-  /** Your check-ins, as timestamps. Only you so far: there is no backend. */
+  /** Your check-ins, as timestamps. */
   checkins: number[]
+  /** Everyone else in the group, if anyone. */
+  members?: Member[]
 }
 
 /** Prototype stand-in until workouts carry a real length. */
@@ -31,10 +36,35 @@ const dayKey = (time: number) => new Date(time).toDateString()
 export const activeDays = (group: Group) => new Set(group.checkins.map(dayKey)).size
 export const checkedInToday = (group: Group) => group.checkins.some((t) => dayKey(t) === dayKey(Date.now()))
 
-export function points(group: Group) {
-  if (group.scoring === "days") return activeDays(group)
-  if (group.scoring === "checkins") return group.checkins.length
-  return group.checkins.length * MINUTES_PER_CHECKIN
+/** Points for a list of check-ins under a scoring mode. */
+export function score(scoring: Scoring, checkins: number[]) {
+  if (scoring === "days") return new Set(checkins.map(dayKey)).size
+  if (scoring === "checkins") return checkins.length
+  return checkins.length * MINUTES_PER_CHECKIN
+}
+
+export const points = (group: Group) => score(group.scoring, group.checkins)
+
+/** Short unit for tight spaces like ranking rows. */
+export const UNIT_SHORT: Record<Scoring, string> = { days: "dias", checkins: "check-ins", minutes: "min" }
+
+export type Standing = { id: string; name: string; me: boolean; points: number; rank: number }
+
+/** Everyone in the group, best first. Ties share a place. */
+export function ranking(group: Group, myName: string): Standing[] {
+  const all = [{ id: "me", name: myName || "Você", me: true, points: points(group) }, ...(group.members ?? []).map((m) => ({ id: m.id, name: m.name, me: false, points: score(group.scoring, m.checkins) }))]
+  all.sort((a, b) => b.points - a.points || Number(b.me) - Number(a.me))
+  return all.map((entry) => ({ ...entry, rank: all.findIndex((other) => other.points === entry.points) + 1 }))
+}
+
+export const myRank = (group: Group) => ranking(group, "").find((s) => s.me)!.rank
+
+/** Friends (across all groups, counted once) with a check-in today. */
+export function friendsToday(groups: Group[]) {
+  const today = dayKey(Date.now())
+  const names = new Map<string, string>()
+  for (const g of groups) for (const m of g.members ?? []) if (m.checkins.some((t) => dayKey(t) === today)) names.set(m.name, m.name)
+  return [...names.values()]
 }
 
 export const pointsLabel = (group: Group) => {

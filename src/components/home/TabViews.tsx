@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react"
 
 import { GroupCover } from "@/components/groups/GroupCover"
 import { activeDays, checkedInToday, pointsLabel, streak, type Group } from "@/components/groups/groups"
+import { loadSample } from "@/components/groups/sample"
 import { PLAIN } from "@/components/rats/paths"
 import { haptic } from "@/hooks/useHaptic"
 import { PRESS, close, open, settle } from "@/motion"
@@ -137,11 +138,23 @@ export function ProfileView({ name, plan, groups, onReset }: { name: string; pla
       <motion.button
         type="button"
         onClick={() => {
+          loadSample()
+          window.location.hash = "home"
+          window.location.reload()
+        }}
+        className="mt-8 h-12 w-full rounded-[20px] bg-[#EDEBEE] text-[17px] text-ink"
+        whileTap={PRESS}
+      >
+        Carregar exemplo com amigos
+      </motion.button>
+      <motion.button
+        type="button"
+        onClick={() => {
           if (!confirming) return setConfirming(true)
           haptic(30)
           onReset()
         }}
-        className={`mt-8 h-12 w-full rounded-[20px] text-[17px] transition-colors ${confirming ? "bg-rat text-white" : "bg-[#EDEBEE] text-rat"}`}
+        className={`mt-2 h-12 w-full rounded-[20px] text-[17px] transition-colors ${confirming ? "bg-rat text-white" : "bg-[#EDEBEE] text-rat"}`}
         whileTap={PRESS}
       >
         {confirming ? "Toque de novo para apagar tudo" : "Apagar tudo e recomeçar"}

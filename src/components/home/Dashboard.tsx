@@ -2,20 +2,20 @@ import { ChevronRightIcon } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useState } from "react"
 
-import { LogoMark } from "@/components/Logo"
 import { CreateGroup } from "@/components/groups/CreateGroup"
 import { GroupCover } from "@/components/groups/GroupCover"
 import { GroupDetail } from "@/components/groups/GroupDetail"
 import { GroupInvite } from "@/components/groups/GroupInvite"
-import { dayNumber, pointsLabel, streak, typeLabel, type Group } from "@/components/groups/groups"
+import { dayNumber, friendsToday, pointsLabel, streak, typeLabel, type Group } from "@/components/groups/groups"
 import { RestingRat } from "@/components/rats/RestingRat"
 import { useStored } from "@/hooks/useStored"
 import { PRESS, SHARED, close, open, settle, sheet } from "@/motion"
 import { themeStyle, type RatKind } from "@/theme"
 import { CheckinCalendar } from "./CheckinCalendar"
 import { BottomNav, type Tab } from "./BottomNav"
+import { FriendsStrip, GroupCarousel } from "./HomeGroups"
 import { JoinGroupSheet } from "./JoinGroupSheet"
-import { Avatar, CheckinView, ProfileView } from "./TabViews"
+import { CheckinView, ProfileView } from "./TabViews"
 
 type View = { screen: "create" } | { screen: "invite"; id: string } | { screen: "group"; id: string; fromList?: boolean } | null
 
@@ -107,41 +107,34 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
       <div inert={joining || view !== null} className="flex h-full flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto px-[7px] pt-[max(6px,env(safe-area-inset-top))] pb-2">
           <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={tab} className="flex flex-col gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
+            <motion.div key={tab} className={`flex flex-col gap-2 ${tab === "home" ? "h-full min-h-[560px]" : ""}`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
               {tab === "home" && (
-                <>
-                  <motion.section
-                    className="flex min-h-[clamp(300px,52dvh,440px)] shrink-0 flex-col rounded-[30px] bg-paper px-5 pt-5 pb-4"
-                    initial={{ y: -24, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  >
-                    <header className="flex items-start justify-between">
-                      <LogoMark className="w-[28px] text-rat" />
-                      <motion.button type="button" aria-label="Abrir perfil" onClick={() => setTab("profile")} className="block size-[38px] overflow-hidden rounded-full ring-[2.5px] ring-rat" whileTap={PRESS}>
-                        <Avatar />
-                      </motion.button>
-                    </header>
-                    <motion.div className="mt-5" {...settle(0, 0.1)}>
-                      <CheckinCalendar checkins={groups.flatMap((g) => g.checkins)} />
-                    </motion.div>
-                    <div className="mt-auto pt-7">
-                      <motion.p className="text-[15px] font-semibold" {...settle(0, 0.15)}>
-                        Visão Geral
-                      </motion.p>
-                      <motion.h1 className="mt-3 text-[clamp(36px,11.5vw,46px)] leading-[1.02] tracking-[-0.035em] text-balance" {...settle(1, 0.15)}>
-                        {headline(checkins, days.current)}
-                      </motion.h1>
-                      <motion.p className="mt-4 inline-flex h-[34px] items-center rounded-full bg-[#E6E4E7] px-4 text-[16px] tabular-nums" {...settle(2, 0.15)}>
-                        Dias seguidos: {days.current}/{days.best}
-                      </motion.p>
-                    </div>
-                  </motion.section>
-
-                  {groupsCard}
-                </>
-              )}
-              {tab === "groups" && groupsCard}
+              <>
+                {/* Sized to fit one screen: the calendar and headline scale with the height, the groups take the rest. */}
+                <motion.section
+                  className="shrink-0 rounded-[30px] bg-paper px-5 pt-[clamp(16px,2.6dvh,24px)] pb-[clamp(14px,2.2dvh,20px)]"
+                  initial={{ y: -24, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <motion.div {...settle(0, 0.1)}>
+                    <CheckinCalendar checkins={groups.flatMap((g) => g.checkins)} />
+                  </motion.div>
+                  <motion.p className="mt-[clamp(14px,3dvh,32px)] text-[15px] font-semibold" {...settle(0, 0.15)}>
+                    Visão Geral
+                  </motion.p>
+                  <motion.h1 className="mt-2 text-[clamp(30px,4.8dvh,46px)] leading-[1.02] tracking-[-0.035em] text-balance" {...settle(1, 0.15)}>
+                    {headline(checkins, days.current)}
+                  </motion.h1>
+                  <motion.p className="mt-[clamp(10px,1.8dvh,16px)] inline-flex h-[34px] items-center rounded-full bg-[#E6E4E7] px-4 text-[16px] tabular-nums" {...settle(2, 0.15)}>
+                    Dias seguidos: {days.current}/{days.best}
+                  </motion.p>
+                </motion.section>
+                <FriendsStrip names={friendsToday(groups)} />
+                <GroupCarousel groups={groups} me={name} onOpen={(id) => setView({ screen: "group", id })} onNewGroup={() => setJoining(true)} />
+              </>
+            )}
+            {tab === "groups" && groupsCard}
               {tab === "checkin" && <CheckinView groups={groups} onCheckIn={(group) => update({ ...group, checkins: [...group.checkins, Date.now()] })} onNewGroup={() => setJoining(true)} />}
               {tab === "profile" && <ProfileView name={name} plan={plan} groups={groups} onReset={onRestart} />}
             </motion.div>

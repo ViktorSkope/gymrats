@@ -6,7 +6,7 @@ import { PrimaryButton } from "@/components/onboarding/SheetScreen"
 import { haptic } from "@/hooks/useHaptic"
 import { PRESS, SHARED, settle } from "@/motion"
 import { THEMES, themeStyle, type RatKind } from "@/theme"
-import { activeDays, checkedInToday, copyText, dayNumber, endsAt, initials, pointsLabel, shortDate, typeLabel, type Group } from "./groups"
+import { UNIT_SHORT, activeDays, checkedInToday, copyText, dayNumber, endsAt, initials, ranking, shortDate, typeLabel, type Group } from "./groups"
 import { GroupCover } from "./GroupCover"
 
 function Stat({ value, label, kind, index }: { value: string | number; label: string; kind: RatKind; index: number }) {
@@ -103,19 +103,23 @@ export function GroupDetail({ group, morph = false, me, onBack, onInvite, onChan
 
           <h2 className="mt-6 px-1 text-[20px] font-semibold">Classificação</h2>
           <div className="mt-2 rounded-[22px] border border-ink/10">
-            <motion.div className="flex items-center gap-3 px-4 py-3" {...settle(0, 0.2)}>
-              <span className="flex size-11 items-center justify-center rounded-full bg-rat text-[15px] font-semibold text-on-rat">{initials(me) || "EU"}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[16px] font-semibold">{me || "Você"}</span>
-                <span className="block text-[14px] text-ink/55">{pointsLabel(group)}</span>
-              </span>
-              <span className="text-[24px] font-semibold text-rat-title">1º</span>
-            </motion.div>
-            <motion.button type="button" onClick={onInvite} className="flex w-full items-center gap-3 border-t border-ink/8 px-4 py-3 text-left" whileTap={PRESS} {...settle(1, 0.2)}>
+            {ranking(group, me).map((s, i) => (
+              <motion.div key={s.id} className={`flex items-center gap-3 px-4 py-3 ${i ? "border-t border-ink/8" : "rounded-t-[22px]"} ${s.me ? "bg-rat-bg" : ""}`} {...settle(i, 0.2)}>
+                <span className={`flex size-11 items-center justify-center rounded-full text-[15px] font-semibold ${s.me ? "bg-rat text-on-rat" : "bg-ink/8 text-ink"}`}>{s.me ? initials(me) || "EU" : initials(s.name)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[16px] font-semibold">{s.me ? me || "Você" : s.name}</span>
+                  <span className="block text-[14px] text-ink/55">
+                    {s.points} {UNIT_SHORT[group.scoring]}
+                  </span>
+                </span>
+                <span className={`text-[22px] font-semibold ${s.me ? "text-rat-title" : "text-ink/70"}`}>{s.rank}º</span>
+              </motion.div>
+            ))}
+            <motion.button type="button" onClick={onInvite} className="flex w-full items-center gap-3 border-t border-ink/8 px-4 py-3 text-left" whileTap={PRESS} {...settle((group.members?.length ?? 0) + 1, 0.2)}>
               <span className="flex size-11 items-center justify-center rounded-full border-2 border-dashed border-ink/20 text-ink/40">
                 <PlusIcon className="size-5" />
               </span>
-              <span className="flex-1 text-[15px] text-ink/55">Ranking de um é fácil. Chame alguém para disputar.</span>
+              <span className="flex-1 text-[15px] text-ink/55">{group.members?.length ? "Convide mais gente para a disputa." : "Ranking de um é fácil. Chame alguém para disputar."}</span>
             </motion.button>
           </div>
 
@@ -124,7 +128,7 @@ export function GroupDetail({ group, morph = false, me, onBack, onInvite, onChan
             <Stat index={0} kind="yellow" value={group.checkins.length} label="Check-ins totais" />
             <Stat index={1} kind="blue" value={activeDays(group)} label="Dias ativos" />
             <Stat index={2} kind="green" value={avg.toFixed(1).replace(".", ",")} label="Média de check-ins por dia" />
-            <Stat index={3} kind="red" value={1} label="Membro" />
+            <Stat index={3} kind="red" value={1 + (group.members?.length ?? 0)} label={group.members?.length ? "Membros" : "Membro"} />
           </div>
         </div>
       </div>
