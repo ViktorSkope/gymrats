@@ -103,7 +103,7 @@ export function JoinGroupSheet({ open: isOpen, onClose, onCreate }: Props) {
                     enterKeyHint="go"
                     aria-invalid={status === "notFound"}
                     aria-describedby="invite-status"
-                    className="h-[52px] w-full rounded-2xl border border-ink/15 bg-white pr-12 pl-4 text-[17px] outline-none transition-[border-color,box-shadow] placeholder:text-ink/35 focus:border-ink focus:ring-3 focus:ring-ink/8 aria-invalid:border-[#D33A2C]"
+                    className="h-[52px] w-full rounded-2xl border border-ink/15 bg-white pr-12 pl-4 text-[17px] outline-none transition-[border-color,box-shadow] placeholder:text-ink/35 focus:border-ink focus:ring-3 focus:ring-ink/8 aria-invalid:border-[#D23A2C]"
                   />
                   {!value && (
                     <button type="button" aria-label="Colar" onClick={paste} className="absolute top-1/2 right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-xl text-ink/55">

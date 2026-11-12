@@ -7,7 +7,7 @@ function OpenOnPhone() {
   const url = window.location.origin + window.location.pathname
 
   useEffect(() => {
-    QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: "#1e1e1e", light: "#ffffff" } })
+    QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: "#1D1D1D", light: "#ffffff" } })
       .then(setQr)
       .catch(() => setQr(""))
   }, [url])

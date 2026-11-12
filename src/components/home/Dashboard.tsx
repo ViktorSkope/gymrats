@@ -1,116 +1,124 @@
-import { ChevronRightIcon, KeyRoundIcon, PlusIcon, StarIcon, UserPlusIcon } from "lucide-react"
+import { ChevronRightIcon, RotateCcwIcon } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useState } from "react"
 
+import { LogoMark } from "@/components/Logo"
 import { CreateGroup } from "@/components/groups/CreateGroup"
 import { GroupCover } from "@/components/groups/GroupCover"
 import { GroupDetail } from "@/components/groups/GroupDetail"
 import { GroupInvite } from "@/components/groups/GroupInvite"
-import { dayNumber, initials, points, pointsLabel, typeLabel, type Group } from "@/components/groups/groups"
-import { PrimaryButton } from "@/components/onboarding/SheetScreen"
+import { dayNumber, pointsLabel, streak, typeLabel, type Group } from "@/components/groups/groups"
 import { RestingRat } from "@/components/rats/RestingRat"
+import { PLAIN } from "@/components/rats/paths"
 import { useStored } from "@/hooks/useStored"
-import { PRESS, SHARED, close, open, settle, sheet } from "@/motion"
-import { THEMES, themeStyle, type RatKind } from "@/theme"
+import { PRESS, SHARED, close, open, popover, settle, sheet } from "@/motion"
+import { themeStyle, type RatKind } from "@/theme"
 import { JoinGroupSheet } from "./JoinGroupSheet"
-import { TABS, TabBar, type Tab } from "./TabBar"
 
 type View = { screen: "create" } | { screen: "invite"; id: string } | { screen: "group"; id: string; fromList?: boolean } | null
 
-/** Nothing to rank yet: the rat sleeps until there is a group to compete in. */
-function EmptyRankings({ onJoin, onCreate }: { onJoin: () => void; onCreate: () => void }) {
+/** Your rat's face in a ring: the profile button. */
+function Avatar() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-8 pb-6 text-center">
-      <motion.div {...settle(0, 0.15)}>
-        <RestingRat className="w-[clamp(130px,24dvh,190px)]" />
-      </motion.div>
-      <motion.h2 className="mt-5 text-[22px] leading-tight tracking-[-0.02em]" {...settle(1, 0.15)}>
-        Nenhum ranking por aqui
-      </motion.h2>
-      <motion.p className="mt-2 max-w-[280px] text-[16px] leading-snug text-ink/60" {...settle(2, 0.15)}>
-        Seu rato está descansando. Entre em um grupo para começar a pontuar.
-      </motion.p>
-      <motion.div className="mt-6 flex w-full max-w-[300px] flex-col gap-2" {...settle(3, 0.15)}>
-        <PrimaryButton shared onClick={onJoin}>
-          Entrar em um grupo
-        </PrimaryButton>
-        <motion.button type="button" onClick={onCreate} className="h-11 rounded-[20px] text-[16px] font-medium text-ink/70" whileTap={PRESS}>
-          ou criar o seu próprio
-        </motion.button>
-      </motion.div>
+    <svg viewBox="70 230 600 600" className="size-full" aria-hidden="true">
+      <rect x="70" y="230" width="600" height="600" fill="#F7F5F8" />
+      <path d={PLAIN.body} fill="#D23A2C" fillRule="evenodd" />
+      {[286.5, 449.7].map((cx) => (
+        <g key={cx}>
+          <circle cx={cx} cy={397} r={62} fill="#fff" />
+          <circle cx={cx} cy={397} r={44} fill="#1D1D1D" />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+/** Profile popover: grows out of the avatar and shrinks back into it. */
+function ProfileMenu({ name, onRestart }: { name: string; onRestart: () => void }) {
+  const [isOpen, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      <motion.button
+        type="button"
+        aria-label={name ? `Perfil de ${name}` : "Perfil"}
+        aria-expanded={isOpen}
+        onClick={() => setOpen((o) => !o)}
+        className="block size-[38px] overflow-hidden rounded-full ring-[2.5px] ring-rat"
+        whileTap={PRESS}
+      >
+        <Avatar />
+      </motion.button>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} aria-hidden="true" />
+            <motion.div role="menu" className="absolute top-[calc(100%+8px)] right-0 z-20 w-[220px] origin-top-right rounded-2xl bg-white p-1.5 shadow-xl shadow-black/15" {...popover}>
+              <p className="px-3 pt-2 pb-1.5 text-[15px] font-semibold">{name || "Você"}</p>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  onRestart()
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[15px] hover:bg-ink/4"
+              >
+                <RotateCcwIcon className="size-4 text-ink/60" />
+                Refazer o onboarding
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-/** Your groups, each with where you stand. Covers grow into the group's page when opened. */
-function GroupList({ groups, onOpen, onJoin, onCreate }: { groups: Group[]; onOpen: (id: string) => void; onJoin: () => void; onCreate: () => void }) {
+function headline(total: number, current: number) {
+  if (!total) return "Você está só começando!"
+  if (current >= 3) return "Ninguém te segura!"
+  return "Bom treino, continue assim!"
+}
+
+/** Your groups as rows on the red card. Covers grow into the group's page when opened. */
+function GroupRows({ groups, onOpen }: { groups: Group[]; onOpen: (id: string) => void }) {
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-4">
-      <ul className="flex flex-col gap-2.5">
-        {groups.map((group, index) => (
-          <motion.li key={group.id} {...settle(index, 0.05)}>
-            <motion.button type="button" onClick={() => onOpen(group.id)} className="flex w-full items-center gap-3.5 rounded-[24px] border border-ink/10 p-2.5 pr-4 text-left" whileTap={PRESS}>
-              <GroupCover cover={group.cover} layoutId={SHARED.cover(group.id)} className="size-[68px] shrink-0 rounded-[18px]" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[17px] font-semibold">{group.name}</span>
-                <span className="block text-[14px] text-ink/55">
-                  {typeLabel(group)}
-                  {group.days ? ` · Dia ${Math.min(dayNumber(group), group.days)} de ${group.days}` : ""}
-                </span>
-                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-rat-bg px-2 py-0.5 text-[13px] font-medium">
-                  <b className="font-semibold text-rat-title">1º</b> {pointsLabel(group)}
-                </span>
+    <ul className="mt-4 flex flex-col gap-2">
+      {groups.map((group, index) => (
+        <motion.li key={group.id} {...settle(index, 0.1)}>
+          <motion.button type="button" onClick={() => onOpen(group.id)} className="flex w-full items-center gap-3 rounded-[20px] bg-white/12 p-2 pr-3 text-left" whileTap={PRESS}>
+            <GroupCover cover={group.cover} layoutId={SHARED.cover(group.id)} className="size-14 shrink-0 rounded-[14px] ring-1 ring-white/20" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[16px] font-semibold">{group.name}</span>
+              <span className="block truncate text-[13px] opacity-80">
+                {typeLabel(group)}
+                {group.days ? ` · Dia ${Math.min(dayNumber(group), group.days)} de ${group.days}` : ""} · 1º, {pointsLabel(group)}
               </span>
-              <ChevronRightIcon className="size-5 shrink-0 text-ink/30" />
-            </motion.button>
-          </motion.li>
-        ))}
-      </ul>
-      <motion.div className="mt-4 grid grid-cols-2 gap-2" {...settle(groups.length, 0.05)}>
-        <motion.button type="button" onClick={onCreate} className="flex h-12 items-center justify-center gap-2 rounded-[18px] border border-ink/12 text-[15px] font-medium" whileTap={PRESS}>
-          <PlusIcon className="size-[18px]" />
-          Criar grupo
-        </motion.button>
-        <motion.button type="button" onClick={onJoin} className="flex h-12 items-center justify-center gap-2 rounded-[18px] border border-ink/12 text-[15px] font-medium" whileTap={PRESS}>
-          <KeyRoundIcon className="size-[18px]" />
-          Usar código
-        </motion.button>
-      </motion.div>
-    </div>
-  )
-}
-
-function Placeholder({ tab, onRestart }: { tab: Tab; onRestart: () => void }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 pb-6 text-center text-[16px] text-ink/55">
-      <p>{TABS.find((t) => t.id === tab)?.label} chega em breve.</p>
-      {tab === "profile" && (
-        <motion.button type="button" onClick={onRestart} className="h-11 rounded-[20px] border border-ink/15 px-5 font-medium text-ink" whileTap={PRESS}>
-          Refazer o onboarding
-        </motion.button>
-      )}
-    </div>
+            </span>
+            <ChevronRightIcon className="size-5 shrink-0 opacity-60" />
+          </motion.button>
+        </motion.li>
+      ))}
+    </ul>
   )
 }
 
 /**
- * The main screen. A header in the rat's colour holds who you are and your points;
- * a white card holds the tab's content, with a floating tab bar at the bottom.
- * Creating, inviting and a group's page open on top of it.
+ * Home: a light overview card (where you stand, your streak) over the dark app,
+ * and a red card with your groups. Creating, inviting and a group's page open on top.
  */
 export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: string; onRestart: () => void }) {
-  const [tab, setTab] = useState<Tab>("rankings")
   const [joining, setJoining] = useState(false)
   const [groups, setGroups] = useStored<Group[]>("groups", [])
   const [view, setView] = useState<View>(null)
   const closeJoin = useCallback(() => setJoining(false), [])
-  const title = TABS.find((t) => t.id === tab)!.label
-  const total = groups.reduce((sum, group) => sum + points(group), 0)
   const current = view && view.screen !== "create" ? groups.find((g) => g.id === view.id) : undefined
+  const checkins = groups.reduce((sum, g) => sum + g.checkins.length, 0)
+  const days = streak(groups)
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEMES[kind].rat)
-  }, [kind])
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
+  }, [])
 
   const update = (group: Group) => setGroups((all) => all.map((g) => (g.id === group.id ? group : g)))
   const startCreate = () => {
@@ -118,51 +126,57 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
     setView({ screen: "create" })
   }
 
-  const showsGroups = tab === "rankings" || tab === "groups"
-
   return (
-    <motion.div className="theme-fade absolute inset-0 flex flex-col bg-rat" style={themeStyle(kind)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
-      <div inert={joining || view !== null} className="flex min-h-0 flex-1 flex-col">
-        <header className="flex items-start justify-between px-5 pt-[max(16px,env(safe-area-inset-top))] pb-7 text-on-rat">
-          <div>
-            <p className="text-[14px] font-medium opacity-80">{name ? `Olá, ${name.split(" ")[0]}` : "Olá!"}</p>
-            <p className="mt-1.5 inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/20 px-3 text-[20px] font-semibold tabular-nums" aria-label={`${total} pontos`}>
-              <StarIcon className="size-[18px] fill-[#FFC93C] text-[#FFC93C]" aria-hidden="true" />
-              {total}
-              <span className="text-[13px] font-medium opacity-80">pts</span>
-            </p>
+    <motion.div className="theme-fade absolute inset-0 bg-ink" style={themeStyle(kind)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
+      <div inert={joining || view !== null} className="flex h-full flex-col gap-2 overflow-y-auto px-[7px] pt-[max(6px,env(safe-area-inset-top))] pb-[max(7px,env(safe-area-inset-bottom))]">
+        <motion.section
+          className="flex min-h-[clamp(300px,52dvh,440px)] shrink-0 flex-col rounded-[30px] bg-paper px-5 pt-5 pb-4"
+          initial={{ y: -24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          <header className="flex items-start justify-between">
+            <LogoMark className="w-[28px] text-rat" />
+            <ProfileMenu name={name} onRestart={onRestart} />
+          </header>
+          <div className="mt-auto">
+            <motion.p className="text-[15px] font-semibold" {...settle(0, 0.15)}>
+              Visão Geral
+            </motion.p>
+            <motion.h1 className="mt-3 text-[clamp(36px,11.5vw,46px)] leading-[1.02] tracking-[-0.035em] text-balance" {...settle(1, 0.15)}>
+              {headline(checkins, days.current)}
+            </motion.h1>
+            <motion.p className="mt-4 inline-flex h-[34px] items-center rounded-full bg-[#E6E4E7] px-4 text-[16px] tabular-nums" {...settle(2, 0.15)}>
+              Dias seguidos: {days.current}/{days.best}
+            </motion.p>
           </div>
-          <div className="flex items-center gap-2.5">
-            <motion.button
-              type="button"
-              onClick={() => (groups[0] ? setView({ screen: "invite", id: groups[0].id }) : startCreate())}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[14px] font-semibold text-rat-title"
-              whileTap={PRESS}
-            >
-              <UserPlusIcon className="size-4" />
-              Convidar
-            </motion.button>
-            <span className="flex size-11 items-center justify-center rounded-full bg-white text-[16px] font-semibold text-rat-title ring-2 ring-white/40" aria-label={name || "Perfil"}>
-              {initials(name) || "?"}
-            </span>
-          </div>
-        </header>
+        </motion.section>
 
-        <main className="flex min-h-0 flex-1 flex-col rounded-t-[32px] bg-white pb-[max(12px,env(safe-area-inset-bottom))]">
-          <h1 className="px-6 pt-6 text-[44px] leading-none tracking-[-0.03em] text-rat-title">{title}</h1>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={tab} className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
-              {!showsGroups ? (
-                <Placeholder tab={tab} onRestart={onRestart} />
-              ) : groups.length ? (
-                <GroupList groups={groups} onOpen={(id) => setView({ screen: "group", id, fromList: true })} onJoin={() => setJoining(true)} onCreate={startCreate} />
-              ) : (
-                <EmptyRankings onJoin={() => setJoining(true)} onCreate={startCreate} />
-              )}
-            </motion.div>
-          </AnimatePresence>
-          <TabBar active={tab} onChange={setTab} />
-        </main>
+        <motion.section
+          className="relative shrink-0 overflow-hidden rounded-[30px] bg-rat p-5 text-white"
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.08 }}
+        >
+          <h2 className="text-[15px] font-semibold">Grupos</h2>
+          {groups.length ? (
+            <GroupRows groups={groups} onOpen={(id) => setView({ screen: "group", id, fromList: true })} />
+          ) : (
+            <>
+              {/* Nothing to compete in yet, so the rat sleeps. */}
+              <RestingRat fur="#B42F23" shade="#7E1D14" className="pointer-events-auto absolute top-3 right-4 w-[clamp(84px,24vw,104px)]" />
+              <p className="mt-3 max-w-[64%] text-[17px] leading-snug">Você ainda não tem grupos. Crie um ou entre em um grupo.</p>
+            </>
+          )}
+          <motion.button
+            type="button"
+            onClick={() => setJoining(true)}
+            className="relative mt-5 h-12 w-full rounded-[20px] bg-paper text-[17px] text-ink outline-none focus-visible:ring-3 focus-visible:ring-white/60"
+            whileTap={PRESS}
+          >
+            Novo grupo
+          </motion.button>
+        </motion.section>
       </div>
 
       <JoinGroupSheet open={joining} onClose={closeJoin} onCreate={startCreate} />

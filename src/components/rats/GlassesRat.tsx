@@ -4,7 +4,7 @@ import { useEffect, useId } from "react"
 import { useBlink, useGaze, type Look } from "./Eyes"
 import { GLASSES } from "./paths"
 
-const RED = "#D33A2C"
+const RED = "#D23A2C"
 const LENS = "#DB6256"
 const FRAME = "#A22216"
 const PUPIL = "#4D4D4D"

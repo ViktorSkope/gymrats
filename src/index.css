@@ -4,8 +4,8 @@
 
 @theme {
   --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --color-ink: #1e1e1e;
-  --color-cream: #ffe8d9;
+  --color-ink: #1D1D1D;
+  --color-paper: #F7F5F8;
   --color-sweat: #e8695a;
   --color-check: #3b7f5c;
   --color-splash-drop: #2c2c2c;
@@ -15,12 +15,12 @@
 @property --rat {
   syntax: "<color>";
   inherits: true;
-  initial-value: #d33a2c;
+  initial-value: #D23A2C;
 }
 @property --rat-bg {
   syntax: "<color>";
   inherits: true;
-  initial-value: #ffe8d9;
+  initial-value: #F7F5F8;
 }
 @property --on-rat {
   syntax: "<color>";

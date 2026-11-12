@@ -20,7 +20,7 @@ export function HappyFace({ className }: { className?: string }) {
           cx={200}
           cy={110}
           r={bit.r}
-          fill={bit.white ? "#fff" : "#1E1E1E"}
+          fill={bit.white ? "#fff" : "#1D1D1D"}
           fillOpacity={bit.white ? 0.9 : 0.25}
           initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
           animate={{ x: bit.x, y: bit.y, opacity: [0, 1, 1, 0], scale: [0, 1, 1, 0.6] }}
@@ -36,7 +36,7 @@ export function HappyFace({ className }: { className?: string }) {
         <Eyes spec={SPEC} />
         <motion.path
           d="M120 150Q120 140 130 140H270Q280 140 280 150A80 72 0 0 1 120 150Z"
-          fill="#1E1E1E"
+          fill="#1D1D1D"
           style={{ transformBox: "fill-box", transformOrigin: "50% 0%" }}
           animate={{ scaleY: [1, 0.86, 1] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}

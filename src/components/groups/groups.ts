@@ -133,3 +133,20 @@ export async function copyText(text: string) {
     // Clipboard blocked: nothing else to do in a prototype.
   }
 }
+
+/** Days in a row with a check-in in any group: the current run (alive if it reaches today or yesterday) and the best run. */
+export function streak(groups: Group[]) {
+  const DAY = 86_400_000
+  const days = [...new Set(groups.flatMap((g) => g.checkins.map((t) => Math.floor((t - new Date(t).getTimezoneOffset() * 60_000) / DAY))))].sort((a, b) => a - b)
+  let best = 0
+  let run = 0
+  for (let i = 0; i < days.length; i++) {
+    run = i > 0 && days[i] === days[i - 1] + 1 ? run + 1 : 1
+    best = Math.max(best, run)
+  }
+  const now = Date.now()
+  const today = Math.floor((now - new Date(now).getTimezoneOffset() * 60_000) / DAY)
+  const last = days[days.length - 1]
+  const current = last !== undefined && today - last <= 1 ? run : 0
+  return { current, best }
+}

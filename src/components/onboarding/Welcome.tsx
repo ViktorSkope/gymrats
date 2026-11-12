@@ -8,7 +8,7 @@ import { PLAIN } from "@/components/rats/paths"
 import { haptic } from "@/hooks/useHaptic"
 import { CLOSE, EASE_IN_OUT, PRESS, close, open, settle } from "@/motion"
 
-const RED = "#D33A2C"
+const RED = "#D23A2C"
 const EYES: EyeSpec = { style: "pupil", left: [286.5, 399], right: [449.7, 395], r: 66, pupil: 50, rest: { x: 0, y: 0 } }
 
 // Drops bead on the head, grow, run down and fade. Coordinates are the illustration's own.
@@ -77,10 +77,10 @@ function LoginRat() {
     <motion.svg
       ref={ref}
       viewBox={`0 0 ${PLAIN.w} ${PLAIN.h}`}
-      className="relative block h-auto w-[min(97.5%,calc((100dvh-400px)*0.81))] max-w-none -translate-x-[13.9%] overflow-visible"
+      className="relative -mb-[33.8%] block h-auto w-full overflow-visible"
       aria-hidden="true"
       onTap={poke}
-      // Rises out of the card: its bottom half is the same red, so it seems to grow from it.
+      // Rises from behind the card, which covers its lower body.
       initial={{ y: "22%" }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.2 }}
@@ -108,7 +108,7 @@ function AuthButton({ icon, children, onClick, index }: { icon: ReactNode; child
     <motion.button
       type="button"
       onClick={onClick}
-      className="relative flex h-[49px] w-full items-center rounded-[22px] bg-ink pl-[96px] text-[16px] font-medium text-white outline-none focus-visible:ring-3 focus-visible:ring-white/70"
+      className="relative flex h-[49px] w-full items-center rounded-[22px] bg-[#2C2C2C] pl-[96px] text-[16px] font-medium text-white outline-none focus-visible:ring-3 focus-visible:ring-white/70"
       {...settle(index, 0.45)}
       whileTap={PRESS}
     >
@@ -136,41 +136,41 @@ const GoogleIcon = () => (
 const MailIcon = () => (
   <svg viewBox="0 0 24 18" className="w-[23px]" aria-hidden="true">
     <rect width="24" height="18" rx="1" fill="#fff" />
-    <path d="M1 1l11 9 11-9M1 17l8.2-7.2M23 17l-8.2-7.2" fill="none" stroke="#1E1E1E" strokeWidth="1.3" />
+    <path d="M1 1l11 9 11-9M1 17l8.2-7.2M23 17l-8.2-7.2" fill="none" stroke="#1D1D1D" strokeWidth="1.3" />
   </svg>
 )
 
 /**
- * Welcome: the red rat grows out of a red card that holds three ways in.
+ * Welcome: the red rat peeks over a dark card that holds three ways in.
  * For now every way leads to the goal question.
  */
 export function Welcome({ onContinue }: { onContinue: () => void }) {
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#FFE8D9")
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#F7F5F8")
   }, [])
 
   return (
     <motion.div
-      className="absolute inset-0 flex flex-col overflow-hidden bg-cream"
+      className="absolute inset-0 flex flex-col overflow-hidden bg-paper"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: close }}
     >
-      <div className="min-h-[max(16px,env(safe-area-inset-top))] flex-1" />
+      {/* The rat stands centred; the card slides over its lower body. Its width (91% of the screen,
+          as in the design) shrinks on short screens so the card always fits. */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-end pt-[max(16px,env(safe-area-inset-top))]">
+        <div className="w-[clamp(120px,calc((100dvh-440px)*1.12),91%)]">
+          <LoginRat />
+        </div>
+      </div>
+
       <motion.section
-        className="@container relative mx-[3.2%] flex flex-col"
+        className="@container relative mx-[7px] mb-[max(7px,env(safe-area-inset-bottom))] flex flex-col items-center rounded-[30px] bg-ink px-6 pt-[clamp(28px,7dvh,62px)] pb-[clamp(16px,4dvh,36px)]"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%", transition: { duration: CLOSE * 1.5, ease: EASE_IN_OUT } }}
         transition={{ type: "spring", stiffness: 260, damping: 30 }}
       >
-        <div className="relative">
-          {/* The card's top edge starts where the rat's body is widest, so the two read as one shape. */}
-          <div className="absolute inset-x-0 top-[77.7%] bottom-0 rounded-tr-[24px] bg-[#D33A2C]" />
-          <LoginRat />
-        </div>
-
-        <div className="relative flex flex-col items-center bg-[#D33A2C] px-6 pb-[max(24px,env(safe-area-inset-bottom))]">
           <motion.h1
             className="text-center text-[clamp(22px,9.3cqw,34px)] leading-tight font-normal tracking-[-0.02em] whitespace-nowrap text-white"
             initial={{ opacity: 0, y: 10 }}
@@ -180,7 +180,7 @@ export function Welcome({ onContinue }: { onContinue: () => void }) {
             Bem-vindo ao <Wordmark className="ml-[0.08em]" />
           </motion.h1>
 
-          <div className="mt-[clamp(24px,7dvh,86px)] flex w-full max-w-[324px] flex-col gap-2">
+          <div className="mt-[clamp(20px,4.5dvh,40px)] flex w-full max-w-[324px] flex-col gap-2">
             <AuthButton index={0} icon={<AppleIcon />} onClick={onContinue}>
               Continuar com Apple
             </AuthButton>
@@ -201,7 +201,6 @@ export function Welcome({ onContinue }: { onContinue: () => void }) {
           >
             Não consigo acessar minha conta
           </motion.button>
-        </div>
       </motion.section>
     </motion.div>
   )

@@ -19,7 +19,7 @@ type Props = {
 }
 
 /**
- * The onboarding layout: the glasses rat stands over a white sheet.
+ * The onboarding layout: the glasses rat peeks over a dark card.
  * The rat stays put between steps; only the sheet's content changes.
  */
 export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) {
@@ -38,7 +38,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
     >
       <div className="relative h-[clamp(180px,37dvh,312px)] shrink-0 overflow-hidden">
         <motion.div
-          className="absolute inset-x-0 bottom-[7%] flex h-[74%] justify-center"
+          className="absolute inset-x-0 -bottom-[6%] flex h-[75%] justify-center"
           initial={{ y: "60%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 26, delay: 0.1 }}
@@ -51,7 +51,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
             type="button"
             aria-label="Voltar"
             onClick={onBack}
-            className="absolute top-[max(14px,env(safe-area-inset-top))] left-4 flex size-11 items-center justify-center rounded-full bg-white/80 text-ink outline-none focus-visible:ring-3 focus-visible:ring-ink/30"
+            className="absolute top-[max(14px,env(safe-area-inset-top))] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink shadow-sm shadow-black/5 outline-none focus-visible:ring-3 focus-visible:ring-ink/30"
             {...popover}
             whileTap={PRESS}
           >
@@ -61,7 +61,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
       </div>
 
       <motion.section
-        className="relative mx-[15px] flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[32px] bg-white"
+        className="relative mx-[9px] mb-[max(7px,env(safe-area-inset-bottom))] flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-ink text-white"
         initial={{ y: 80 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 32 }}
@@ -91,7 +91,7 @@ export function SheetBody({ title, children, action }: { title: ReactNode; child
         <h1 className="text-[26px] leading-[1.12] font-normal tracking-[-0.02em] text-balance">{title}</h1>
         {children}
       </div>
-      {action && <div className="shrink-0 px-[22px] pt-2 pb-[max(20px,env(safe-area-inset-bottom))]">{action}</div>}
+      {action && <div className="shrink-0 px-[22px] pt-2 pb-6">{action}</div>}
     </div>
   )
 }

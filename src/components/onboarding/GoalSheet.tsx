@@ -57,13 +57,13 @@ export function GoalSheet({ goal, onSelect, onContinue }: { goal: GoalId | null;
               tabIndex={option.id === focusable ? 0 : -1}
               onClick={() => choose(option.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              className="relative flex h-[50px] items-center justify-center rounded-[20px] border border-ink px-4 text-[16px] outline-none focus-visible:ring-3 focus-visible:ring-ink/25"
+              className="relative flex h-[50px] items-center justify-center rounded-[20px] border border-white px-4 text-[16px] outline-none focus-visible:ring-3 focus-visible:ring-white/30"
               {...settle(index, 0.08)}
               whileTap={PRESS}
             >
               {/* One dark fill that slides to whichever option is chosen. */}
-              {selected && <motion.span layoutId={SHARED.goalFill} className="absolute -inset-px rounded-[20px] bg-ink" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
-              <span className={`relative transition-colors duration-200 ${selected ? "text-white" : "text-ink"}`}>{option.label}</span>
+              {selected && <motion.span layoutId={SHARED.goalFill} className="absolute -inset-px rounded-[20px] bg-white" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
+              <span className={`relative transition-colors duration-200 ${selected ? "text-ink" : "text-white"}`}>{option.label}</span>
             </motion.button>
           )
         })}

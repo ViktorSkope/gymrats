@@ -1,7 +1,7 @@
 import { motion, useSpring, useTransform, type MotionValue } from "motion/react"
 import { useEffect, useId, useState } from "react"
 
-const INK = "#1E1E1E"
+const INK = "#1D1D1D"
 
 export type Look = { x: number; y: number }
 

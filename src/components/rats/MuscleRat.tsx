@@ -2,9 +2,9 @@ import { useId } from "react"
 
 import { MUSCLE } from "./paths"
 
-const RED = "#D33A2C"
+const RED = "#D23A2C"
 const DARK = "#A8291E"
-const INK = "#1E1E1E"
+const INK = "#1D1D1D"
 
 /** The finish-line rat: half-lidded cool eyes, a big grin and a flexed bicep. Static by design. */
 export function MuscleRat({ className }: { className?: string }) {

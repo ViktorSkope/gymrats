@@ -12,7 +12,7 @@ export function QrDialog({ group, onClose }: { group: Group; onClose: () => void
 
   useEffect(() => {
     let live = true
-    QRCode.toDataURL(inviteLink(group), { margin: 1, width: 520, color: { dark: "#1E1E1E", light: "#FFFFFF" } }).then((url) => live && setSrc(url))
+    QRCode.toDataURL(inviteLink(group), { margin: 1, width: 520, color: { dark: "#1D1D1D", light: "#FFFFFF" } }).then((url) => live && setSrc(url))
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose()
     window.addEventListener("keydown", onKey)
     return () => {

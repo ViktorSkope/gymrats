@@ -4,10 +4,10 @@ export type RatKind = "red" | "blue" | "yellow" | "green"
 
 // title: the rat colour, darkened where needed so big headings read on white.
 export const THEMES: Record<RatKind, { rat: string; bg: string; onRat: string; title: string }> = {
-  red: { rat: "#D33A2C", bg: "#FFE8D9", onRat: "#FFFFFF", title: "#D33A2C" },
+  red: { rat: "#D23A2C", bg: "#F7F5F8", onRat: "#FFFFFF", title: "#D23A2C" },
   blue: { rat: "#4E8BD3", bg: "#D7EAFD", onRat: "#FFFFFF", title: "#3A72BE" },
   // Yellow is too light for white text, so its buttons use ink.
-  yellow: { rat: "#F4BA41", bg: "#FFF3D6", onRat: "#1E1E1E", title: "#B07A0C" },
+  yellow: { rat: "#F4BA41", bg: "#FFF3D6", onRat: "#1D1D1D", title: "#B07A0C" },
   green: { rat: "#3B7F5C", bg: "#F4FCD8", onRat: "#FFFFFF", title: "#3B7F5C" },
 }
 

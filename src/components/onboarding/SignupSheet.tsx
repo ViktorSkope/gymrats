@@ -55,17 +55,17 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
     "aria-invalid": touched[field] && !!errors[field],
     "aria-describedby": `${field}-error`,
     className:
-      "h-[52px] w-full rounded-2xl border border-ink/15 bg-white px-4 text-[17px] text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink/35 focus:border-ink focus:ring-3 focus:ring-ink/8 aria-invalid:border-[#D33A2C]",
+      "h-[52px] w-full rounded-2xl border border-white/15 bg-white/6 px-4 text-[17px] text-white outline-none transition-[border-color,box-shadow] placeholder:text-white/35 focus:border-white focus:ring-3 focus:ring-white/10 aria-invalid:border-[#FF6B5C]",
   })
 
   const label = (field: Field, text: string) => (
-    <label htmlFor={field} className="mb-1.5 block text-[14px] font-medium text-ink/70">
+    <label htmlFor={field} className="mb-1.5 block text-[14px] font-medium text-white/70">
       {text}
     </label>
   )
 
   const error = (field: Field) => (
-    <p id={`${field}-error`} className="mt-1.5 min-h-[18px] text-[13px] text-[#C0392B]" aria-live="polite">
+    <p id={`${field}-error`} className="mt-1.5 min-h-[18px] text-[13px] text-[#FF8A7E]" aria-live="polite">
       {touched[field] ? errors[field] : ""}
     </p>
   )
@@ -79,13 +79,13 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
             <PrimaryButton shared type="submit" disabled={!valid}>
               Criar conta
             </PrimaryButton>
-            <p className="mt-3 text-center text-[12px] leading-snug text-ink/50">
+            <p className="mt-3 text-center text-[12px] leading-snug text-white/50">
               Ao continuar, você concorda com os <span className="underline">Termos</span> e a <span className="underline">Política de Privacidade</span>.
             </p>
           </>
         }
       >
-        <p className="mt-2 text-[15px] text-ink/60">Leva menos de um minuto.</p>
+        <p className="mt-2 text-[15px] text-white/60">Leva menos de um minuto.</p>
         <motion.div className="mt-6" {...settle(0, 0.1)}>
           {label("name", "Nome")}
           <input {...input("name")} type="text" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" placeholder="Seu nome" />
@@ -107,7 +107,7 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
               // Keep focus in the field, so the rat's reaction makes sense.
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute top-1/2 right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-xl text-ink/55"
+              className="absolute top-1/2 right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-xl text-white/55"
             >
               {showPassword ? <EyeOffIcon className="size-5" /> : <EyeIcon className="size-5" />}
             </button>

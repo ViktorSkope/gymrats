@@ -15,7 +15,7 @@ const DURATION = 6.6
 function Spinner() {
   return (
     <svg viewBox="0 0 24 24" className="size-6 animate-spin [animation-duration:900ms]" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="#D9D9D9" strokeWidth="2.5" />
+      <circle cx="12" cy="12" r="9" fill="none" stroke="rgb(255 255 255 / 0.18)" strokeWidth="2.5" />
       <circle cx="12" cy="12" r="9" fill="none" stroke="var(--rat)" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="20 100" />
     </svg>
   )
@@ -83,10 +83,10 @@ export function PreparingSheet({ goalStep, onMood, onHop, onDone }: { goalStep: 
       title="Preparando o seu espaço de treinamento..."
       action={
         <div className="px-2.5 pt-2 pb-2">
-          <p className="text-center text-[17px] text-ink/55 tabular-nums" aria-live="polite">
+          <p className="text-center text-[17px] text-white/55 tabular-nums" aria-live="polite">
             {caption(pct)} {pct}%
           </p>
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-rat-bg" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Preparando">
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Preparando">
             <motion.div className="h-full rounded-full bg-rat" style={{ width }} />
           </div>
         </div>
@@ -102,7 +102,7 @@ export function PreparingSheet({ goalStep, onMood, onHop, onDone }: { goalStep: 
               // Each line settles in like a notification as its step starts.
               <motion.li key={text} className="flex items-start gap-3.5 text-[17px] leading-snug" {...settle()}>
                 <span className="mt-[-2px] flex size-[26px] shrink-0 items-center justify-center">{finished ? <Check /> : <Spinner />}</span>
-                <span className={finished ? "text-ink" : "text-ink/80"}>{text}</span>
+                <span className={finished ? "text-white" : "text-white/75"}>{text}</span>
               </motion.li>
             )
           })}

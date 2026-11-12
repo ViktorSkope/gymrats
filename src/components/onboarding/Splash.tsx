@@ -1,21 +1,16 @@
 import { motion } from "motion/react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
-import { Drop } from "@/components/Drop"
+import splashRails from "@/assets/splash-rails.mp4"
 import { LogoMark } from "@/components/Logo"
 import { CLOSE, EASE_IN_OUT } from "@/motion"
 
-// Positions from the design, as a share of the screen.
-const DROPS = [
-  { left: "77%", top: "21%", delay: 0.2 },
-  { left: "25%", top: "60%", delay: 0.45 },
-  { left: "61%", top: "80%", delay: 0.7 },
-]
-
-/** The logo writes itself in while a few drops slide down, then hands over. Tap skips it. */
+/** The logo writes itself in over the light-rails video, then hands over. Tap skips it. */
 export function Splash({ onDone }: { onDone: () => void }) {
+  const [playing, setPlaying] = useState(false)
+
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1e1e1e")
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
   }, [])
 
   useEffect(() => {
@@ -31,20 +26,22 @@ export function Splash({ onDone }: { onDone: () => void }) {
       role="img"
       aria-label="gymrats"
     >
-      {DROPS.map((drop) => (
-        <motion.div
-          key={drop.left}
-          className="absolute w-[26px] text-splash-drop"
-          style={{ left: drop.left, top: drop.top }}
-          initial={{ opacity: 0, y: -24, scale: 0.6 }}
-          animate={{ opacity: 1, y: 30, scale: 1 }}
-          transition={{ delay: drop.delay, duration: 2.2, ease: "easeOut" }}
-        >
-          <Drop className="w-full" />
-        </motion.div>
-      ))}
+      {/* Fades in once it actually plays, so a slow load shows plain dark instead of a frozen frame. */}
+      <motion.video
+        src={splashRails}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        onPlaying={() => setPlaying(true)}
+        className="pointer-events-none absolute inset-0 size-full object-cover"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: playing ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: EASE_IN_OUT }}
+      />
       <motion.div
-        className="text-white"
+        className="relative text-white drop-shadow-[0_4px_24px_rgb(0_0_0/0.35)]"
         initial={{ scale: 0.9 }}
         animate={{ scale: [0.9, 0.9, 1.06, 1] }}
         transition={{ duration: 1.6, times: [0, 0.75, 0.88, 1], ease: "easeOut" }}

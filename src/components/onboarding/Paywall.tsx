@@ -13,7 +13,7 @@ export type Plan = "monthly" | "yearly"
 const FEATURES = [
   { title: "Compita com mais grupos", detail: "Entre em grupos ilimitados e descubra a sua posição nos rankings" },
   { title: "Customize o seu Gymrat", detail: "Com acessórios exclusivos e de tempo limitado" },
-  { title: "Sem anúncios", detail: "Sem interrupções durante o seu check‑in" },
+  { title: "Sem anúncios", detail: "Sem interrupções durante o seu check⁠-⁠in" },
 ]
 
 const PLANS: { id: Plan; name: string; price: string; lines: string[]; note: string; badge?: string }[] = [
@@ -29,7 +29,7 @@ function ProMark() {
   return (
     <motion.div className="relative size-[58px]" initial={{ scale: 0.6, opacity: 0, rotate: -8 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 380, damping: 20, delay: 0.1 }}>
       <svg viewBox="0 0 104 104" className="size-full drop-shadow-[0_10px_18px_rgb(211_58_44/0.35)]" aria-hidden="true">
-        <rect width="104" height="104" rx="28" fill="#D33A2C" />
+        <rect width="104" height="104" rx="28" fill="#D23A2C" />
         <Eyes spec={ICON_EYES} />
       </svg>
       <motion.span
@@ -80,7 +80,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
   const [state, setState] = useState<"idle" | "buying" | "done">("idle")
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#ffffff")
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
   }, [])
 
   const choose = (id: Plan) => {
@@ -104,16 +104,22 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
 
   return (
     <motion.div
-      className="absolute inset-0 flex flex-col overflow-hidden bg-white"
+      className="absolute inset-0 overflow-hidden bg-ink"
       style={themeStyle("red")}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: open() }}
       exit={{ opacity: 0, transition: close }}
     >
       {/* A warm glow behind the header, the only colour outside the cards. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[300px] bg-[radial-gradient(120%_100%_at_15%_0%,#FFE8D9_0%,rgb(255_232_217/0.5)_40%,transparent_75%)]" />
+      {/* The offer sits on a light card over the dark app, like a sheet pulled up for a moment. */}
+      <motion.div
+        className="absolute inset-x-[9px] top-[max(14px,calc(env(safe-area-inset-top)+6px))] bottom-[max(7px,env(safe-area-inset-bottom))] flex flex-col overflow-hidden rounded-[30px] bg-paper"
+        initial={{ y: 60 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 32 }}
+      >
 
-      <div className="relative min-h-0 flex-1 overflow-y-auto px-[32px] pt-[max(clamp(20px,4.5dvh,56px),env(safe-area-inset-top))] pb-4">
+      <div className="relative min-h-0 flex-1 overflow-y-auto px-[32px] pt-[clamp(16px,3dvh,40px)] pb-4">
         <ProMark />
 
         <motion.h1 className="mt-[clamp(14px,2.5dvh,24px)] text-[clamp(22px,6.7vw,27px)] leading-[1.1] whitespace-nowrap font-normal tracking-[-0.025em]" {...settle(0, 0.15)}>
@@ -123,7 +129,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
           Mais controle, mais personalização
         </motion.p>
 
-        <ul className="mt-[clamp(16px,3.5dvh,32px)] space-y-3">
+        <ul className="mt-[clamp(14px,3dvh,32px)] space-y-2.5">
           {FEATURES.map((feature, index) => (
             <motion.li key={feature.title} className="flex gap-3" {...settle(index + 2, 0.15)}>
               <Tick index={index} />
@@ -145,7 +151,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => choose(option.id)}
-                className="relative flex min-h-[132px] flex-col items-start rounded-[20px] bg-[#F4F4F4] p-4 text-left outline-none focus-visible:ring-3 focus-visible:ring-ink/25"
+                className="relative flex min-h-[124px] flex-col items-start rounded-[20px] bg-[#EDEBEE] p-4 text-left outline-none focus-visible:ring-3 focus-visible:ring-ink/25"
                 {...settle(index + 5, 0.15)}
                 whileTap={PRESS}
               >
@@ -162,7 +168,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
         </div>
       </div>
 
-      <motion.div className="relative shrink-0 px-[32px] pt-2 pb-[max(10px,env(safe-area-inset-bottom))]" {...settle(7, 0.15)}>
+      <motion.div className="relative shrink-0 px-[32px] pt-2 pb-3" {...settle(7, 0.15)}>
         <PrimaryButton onClick={buy} className="relative overflow-hidden">
           <AnimatePresence mode="popLayout" initial={false}>
             {state === "idle" && (
@@ -199,7 +205,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
         <motion.button
           type="button"
           onClick={() => state === "idle" && onDone(null)}
-          className="mt-2 h-12 w-full rounded-[20px] bg-[#F0F0F0] text-[17px] font-medium"
+          className="mt-2 h-12 w-full rounded-[20px] bg-[#EAE8EB] text-[17px] font-medium"
           whileTap={PRESS}
         >
           Pular por enquanto
@@ -207,6 +213,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
         <button type="button" className="mx-auto mt-1 block py-1.5 text-[15px] text-rat underline decoration-1 underline-offset-4">
           Ajuda com a compra
         </button>
+      </motion.div>
       </motion.div>
     </motion.div>
   )
