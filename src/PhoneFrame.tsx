@@ -31,7 +31,8 @@ export function PhoneFrame() {
       <iframe
         src={window.location.href}
         title="gymrats"
-        className="aspect-[390/844] h-[min(844px,100%)] rounded-[3rem] border-0 bg-ink shadow-2xl ring-1 shadow-black/15 ring-black/5"
+        // Screen-corner radius scales with the frame: 40px at full size, a little tighter than before.
+        className="aspect-[390/844] h-[min(844px,100%)] rounded-[calc(min(844px,100dvh-48px)*0.0474)] border-0 bg-ink shadow-2xl ring-1 shadow-black/15 ring-black/5"
       />
       <OpenOnPhone />
     </div>
