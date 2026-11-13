@@ -25,7 +25,7 @@ function fanPoint(i: number, up: boolean) {
 }
 
 /** The photo or video with its stickers, the person, and the tally, edge to edge. */
-function Face({ post, group, me }: { post: Post; group: Group; me: string }) {
+function Face({ post, group, me, showGroup = false }: { post: Post; group: Group; me: string; showGroup?: boolean }) {
   const [broken, setBroken] = useState(false)
   const who = author(group, post.by, me)
   return (
@@ -57,7 +57,10 @@ function Face({ post, group, me }: { post: Post; group: Group; me: string }) {
         <PersonAvatar name={who.name} photo={who.photo} me={who.me} className="size-9" />
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-[16px] font-semibold">{who.me ? "Você" : who.name}</span>
-          <span className="block text-[13px] opacity-75">{timeAgo(post.at)}</span>
+          <span className="block truncate text-[13px] opacity-75">
+            {timeAgo(post.at)}
+            {showGroup ? ` · ${group.name}` : ""}
+          </span>
         </span>
         {contested(post) && <span className="rounded-full bg-rat px-2.5 py-1 text-[12px] font-semibold">Contestado</span>}
       </div>
@@ -81,7 +84,7 @@ function Face({ post, group, me }: { post: Post; group: Group; me: string }) {
 }
 
 /** The card on top: drag to vote, hold to sticker. */
-function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Group; me: string; onVote: (kind: "yay" | "nay" | "skip") => void; onSticker: (emoji: string, x: number, y: number) => void }) {
+function TopCard({ post, group, me, showGroup, onVote, onSticker }: { post: Post; group: Group; me: string; showGroup?: boolean; onVote: (kind: "yay" | "nay" | "skip") => void; onSticker: (emoji: string, x: number, y: number) => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-240, 240], [-14, 14])
@@ -217,7 +220,7 @@ function TopCard({ post, group, me, onVote, onSticker }: { post: Post; group: Gr
       animate={{ scale: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
-      <Face post={post} group={group} me={me} />
+      <Face post={post} group={group} me={me} showGroup={showGroup} />
 
       {/* What letting go would do. */}
       {!mine && (
@@ -266,63 +269,86 @@ const PILE = [
   { y: 40, scale: 0.9, rotate: 5 },
 ]
 
+export type Instant = { post: Post; group: Group }
+
 /**
  * Today's instants as a pile of photos. Swipe the top one right for Vale (the easy
  * way) or pull it left for Não vale; your own just slide away. Hold on a photo and
  * drag onto a sticker to stick it there. Buttons below do the same, for anyone who
  * prefers tapping.
+ *
+ * "pile" sits inside a page with the next photos peeking underneath. "full" fills its
+ * parent like stories: one photo at a time, with a progress bar per instant on top.
  */
-export function InstantStack({ posts, group, me, onChange }: { posts: Post[]; group: Group; me: string; onChange: (post: Post) => void }) {
+export function InstantStack({ items, me, onChange, variant = "pile", onFinish }: { items: Instant[]; me: string; onChange: (groupId: string, post: Post) => void; variant?: "pile" | "full"; onFinish?: () => void }) {
   const [gone, setGone] = useState<string[]>([])
-  const queue = posts.filter((p) => !gone.includes(p.id))
+  const queue = items.filter((i) => !gone.includes(i.post.id))
   const top = queue[0]
+  const full = variant === "full"
 
-  const vote = (post: Post, kind: "yay" | "nay" | "skip") => {
+  const vote = ({ post, group }: Instant, kind: "yay" | "nay" | "skip") => {
     if (kind !== "skip") {
       const yay = post.yay.filter((id) => id !== "me")
       const nay = post.nay.filter((id) => id !== "me")
       ;(kind === "yay" ? yay : nay).push("me")
-      onChange({ ...post, yay, nay })
+      onChange(group.id, { ...post, yay, nay })
     }
     setGone((g) => [...g, post.id])
   }
 
-  const sticker = (post: Post, emoji: string, x: number, y: number) => {
+  const sticker = ({ post, group }: Instant, emoji: string, x: number, y: number) => {
     haptic(20)
-    onChange({ ...post, stickers: [...post.stickers, { id: crypto.randomUUID(), by: "me", emoji, x, y, rotate: Math.round(Math.random() * 30 - 15) }] })
+    onChange(group.id, { ...post, stickers: [...post.stickers, { id: crypto.randomUUID(), by: "me", emoji, x, y, rotate: Math.round(Math.random() * 30 - 15) }] })
   }
 
   return (
-    <div>
-      <div className="relative mx-4 mb-10 aspect-[3/4]" aria-live="polite">
+    <div className={full ? "flex min-h-0 flex-1 flex-col" : ""}>
+      <div className={full ? "relative min-h-0 flex-1" : "relative mx-4 mb-10 aspect-[3/4]"} aria-live="polite">
+        {full && items.length > 0 && (
+          <div className="pointer-events-none absolute inset-x-4 top-3 z-30 flex gap-1" aria-hidden="true">
+            {items.map((i) => (
+              <span key={i.post.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
+                <motion.span className="block h-full rounded-full bg-white" initial={false} animate={{ width: gone.includes(i.post.id) ? "100%" : i.post.id === top?.post.id ? "35%" : "0%" }} transition={{ duration: 0.25 }} />
+              </span>
+            ))}
+          </div>
+        )}
         {top ? (
           <>
-            {queue
-              .slice(1, 3)
-              .map((post, i) => (
-                <motion.div key={post.id} className="absolute inset-0" animate={PILE[i]} transition={{ type: "spring", stiffness: 300, damping: 28 }} style={{ zIndex: 5 - i }}>
-                  <Face post={post} group={group} me={me} />
-                  <div className="absolute inset-0 rounded-[30px] bg-black/30" />
-                </motion.div>
-              ))
-              .reverse()}
-            <TopCard key={top.id} post={top} group={group} me={me} onVote={(kind) => vote(top, kind)} onSticker={(emoji, x, y) => sticker(top, emoji, x, y)} />
+            {!full &&
+              queue
+                .slice(1, 3)
+                .map((item, i) => (
+                  <motion.div key={item.post.id} className="absolute inset-0" animate={PILE[i]} transition={{ type: "spring", stiffness: 300, damping: 28 }} style={{ zIndex: 5 - i }}>
+                    <Face post={item.post} group={item.group} me={me} />
+                    <div className="absolute inset-0 rounded-[30px] bg-black/30" />
+                  </motion.div>
+                ))
+                .reverse()}
+            <TopCard key={top.post.id} post={top.post} group={top.group} me={me} showGroup={full} onVote={(kind) => vote(top, kind)} onSticker={(emoji, x, y) => sticker(top, emoji, x, y)} />
           </>
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-4 rounded-[30px] border-2 border-dashed border-white/15 px-8 text-center text-white">
-            <p className="text-[20px] leading-tight">{posts.length ? "Você viu todos os check-ins de hoje" : "Ninguém fez check-in hoje ainda"}</p>
-            {posts.length > 0 && (
-              <motion.button type="button" onClick={() => setGone([])} className="flex h-11 items-center gap-2 rounded-full bg-paper px-5 text-[15px] text-ink" whileTap={PRESS}>
-                <RotateCcwIcon className="size-4" />
-                Ver de novo
-              </motion.button>
+            <p className="text-[20px] leading-tight">{items.length ? "Você viu todos os check-ins de hoje" : "Ninguém fez check-in hoje ainda"}</p>
+            {items.length > 0 && (
+              <div className="flex gap-2">
+                <motion.button type="button" onClick={() => setGone([])} className="flex h-11 items-center gap-2 rounded-full bg-paper px-5 text-[15px] text-ink" whileTap={PRESS}>
+                  <RotateCcwIcon className="size-4" />
+                  Ver de novo
+                </motion.button>
+                {onFinish && (
+                  <motion.button type="button" onClick={onFinish} className="h-11 rounded-full bg-white/12 px-5 text-[15px]" whileTap={PRESS}>
+                    Fechar
+                  </motion.button>
+                )}
+              </div>
             )}
           </div>
         )}
       </div>
 
-      {top && top.by !== "me" && (
-        <div className="mt-4 flex items-center justify-center gap-5">
+      {top && top.post.by !== "me" && (
+        <div className={`flex items-center justify-center gap-5 ${full ? "shrink-0 pt-4 pb-[max(14px,var(--sab))]" : "mt-4"}`}>
           <motion.button type="button" aria-label="Não vale" onClick={() => vote(top, "nay")} className="flex size-14 items-center justify-center rounded-full bg-paper text-rat" whileTap={PRESS}>
             <ThumbsDownIcon className="size-6" />
           </motion.button>

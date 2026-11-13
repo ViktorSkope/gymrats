@@ -15,11 +15,11 @@ import { RankingReel } from "./RankingReel"
 const GAP = 8
 
 /** "3 amigos fizeram check-in hoje", with their faces stacked on the right. */
-export function FriendsStrip({ people }: { people: { name: string; photo?: string }[] }) {
+export function FriendsStrip({ people, onOpen }: { people: { name: string; photo?: string }[]; onOpen: () => void }) {
   if (!people.length) return null
   const text = people.length === 1 ? `${people[0].name} fez check-in hoje` : `${people.length} amigos fizeram check-in hoje`
   return (
-    <motion.div className="flex h-[44px] shrink-0 items-center justify-between rounded-[30px] bg-[#FFF3D6] pr-2 pl-5" {...settle(1, 0.1)}>
+    <motion.button type="button" onClick={onOpen} aria-label={`${text}. Ver os check-ins`} className="flex h-[44px] w-full shrink-0 items-center justify-between rounded-[30px] bg-[#FFF3D6] pr-2 pl-5 text-left text-ink" whileTap={PRESS} {...settle(1, 0.1)}>
       <p className="truncate text-[15px]">{text}</p>
       <div className="flex shrink-0 -space-x-3" aria-hidden="true">
         {people.slice(0, 3).map((person, i) => (
@@ -28,7 +28,7 @@ export function FriendsStrip({ people }: { people: { name: string; photo?: strin
           </motion.span>
         ))}
       </div>
-    </motion.div>
+    </motion.button>
   )
 }
 
@@ -156,7 +156,7 @@ export function GroupCarousel({ groups, me, onOpen, onNewGroup }: { groups: Grou
   }
 
   return (
-    <div ref={ref} className="relative min-h-[200px] flex-1 overflow-hidden rounded-[30px]" aria-roledescription="carrossel" aria-label="Seus grupos">
+    <div ref={ref} className="relative h-[clamp(400px,58dvh,540px)] shrink-0 overflow-hidden rounded-[30px]" aria-roledescription="carrossel" aria-label="Seus grupos">
       <motion.div
         className="flex h-full cursor-grab active:cursor-grabbing"
         style={{ x, gap: GAP }}

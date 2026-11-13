@@ -6,6 +6,7 @@ import type { Look } from "@/components/rats/Eyes"
 import { GlassesRat } from "@/components/rats/GlassesRat"
 import { PRESS, SHARED, close, open, popover } from "@/motion"
 import { THEMES, themeStyle } from "@/theme"
+import { paintChrome } from "@/chrome"
 
 export type RatMood = { look?: Look; closed?: boolean }
 
@@ -25,7 +26,7 @@ type Props = {
 export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) {
   // Match the browser chrome to the background on phones.
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEMES.red.bg)
+    paintChrome(THEMES.red.bg)
   }, [])
 
   return (
@@ -36,9 +37,9 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: close }}
     >
-      <div className="relative h-[clamp(180px,37dvh,312px)] shrink-0 overflow-hidden">
+      <div className="relative h-[clamp(150px,31dvh,300px)] shrink-0 overflow-hidden">
         <motion.div
-          className="absolute inset-x-0 -bottom-[6%] flex h-[75%] justify-center"
+          className="absolute inset-x-0 -bottom-[44%] flex h-[100%] -translate-x-[14%] justify-center"
           initial={{ y: "60%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 26, delay: 0.1 }}
@@ -87,7 +88,7 @@ export function SheetScreen({ mood, hop, contentKey, onBack, children }: Props) 
 export function SheetBody({ title, children, action }: { title: ReactNode; children: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 pt-7 pb-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-8 pt-[clamp(18px,3dvh,28px)] pb-3">
         <h1 className="text-[26px] leading-[1.12] font-normal tracking-[-0.02em] text-balance">{title}</h1>
         {children}
       </div>

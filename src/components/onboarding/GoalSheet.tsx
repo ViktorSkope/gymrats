@@ -42,7 +42,7 @@ export function GoalSheet({ goal, onSelect, onContinue }: { goal: GoalId | null;
         </PrimaryButton>
       }
     >
-      <div role="radiogroup" aria-label="O que você procura no gymrats?" className="mx-auto mt-[clamp(24px,8dvh,84px)] flex max-w-[262px] flex-col gap-4">
+      <div role="radiogroup" aria-label="O que você procura no gymrats?" className="mx-auto mt-[clamp(14px,3.5dvh,48px)] flex max-w-[262px] flex-col gap-[clamp(8px,1.4dvh,14px)]">
         {GOALS.map((option, index) => {
           const selected = goal === option.id
           return (
@@ -57,7 +57,7 @@ export function GoalSheet({ goal, onSelect, onContinue }: { goal: GoalId | null;
               tabIndex={option.id === focusable ? 0 : -1}
               onClick={() => choose(option.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              className="relative flex h-[50px] items-center justify-center rounded-[20px] border border-white px-4 text-[16px] outline-none focus-visible:ring-3 focus-visible:ring-white/30"
+              className="relative flex h-[clamp(42px,5.6dvh,50px)] shrink-0 items-center justify-center rounded-[20px] border border-white px-4 text-[16px] outline-none focus-visible:ring-3 focus-visible:ring-white/30"
               {...settle(index, 0.08)}
               whileTap={PRESS}
             >

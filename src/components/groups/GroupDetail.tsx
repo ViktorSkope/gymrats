@@ -97,7 +97,7 @@ export function GroupDetail({ group, morph = false, me, onBack, onInvite, onChan
         {/* Today's instants as a pile: swipe to vote, hold to sticker. */}
         <section className="shrink-0" aria-label="Check-ins de hoje">
           <p className="px-3 pt-2 pb-2 text-[15px] font-semibold text-white">Check-ins de hoje</p>
-          <InstantStack posts={instants} group={group} me={me} onChange={(next) => onChange({ ...group, posts: (group.posts ?? []).map((p) => (p.id === next.id ? next : p)) })} />
+          <InstantStack items={instants.map((post) => ({ post, group }))} me={me} onChange={(_, next) => onChange({ ...group, posts: (group.posts ?? []).map((p) => (p.id === next.id ? next : p)) })} />
         </section>
 
         <Card index={1}>

@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from "lucide-react"
+import { ChevronRightIcon, XIcon } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
@@ -7,7 +7,9 @@ import { GroupCover } from "@/components/groups/GroupCover"
 import { GroupDetail } from "@/components/groups/GroupDetail"
 import { GroupInvite } from "@/components/groups/GroupInvite"
 import { InstantCamera } from "@/components/checkin/InstantCamera"
-import { STICKERS, dayNumber, friendsToday, pointsLabel, streak, typeLabel, type Group, type Post } from "@/components/groups/groups"
+import { InstantStack } from "@/components/checkin/InstantStack"
+import { RoundButton } from "@/components/ui/kit"
+import { STICKERS, dayNumber, friendsToday, liveInstants, myRank, pointsLabel, streak, typeLabel, type Group, type Post } from "@/components/groups/groups"
 import { SleepyRat } from "@/components/rats/SleepyRat"
 import { useStored } from "@/hooks/useStored"
 import { PRESS, SHARED, close, open, settle, sheet } from "@/motion"
@@ -16,7 +18,9 @@ import { CheckinCalendar } from "./CheckinCalendar"
 import { BottomNav, type Tab } from "./BottomNav"
 import { FriendsStrip, GroupCarousel } from "./HomeGroups"
 import { JoinGroupSheet } from "./JoinGroupSheet"
-import { CheckinView, ProfileView } from "./TabViews"
+import { StatsView } from "./StatsView"
+import { ProfileView } from "./TabViews"
+import { paintChrome } from "@/chrome"
 
 type View = { screen: "create" } | { screen: "invite"; id: string } | { screen: "group"; id: string; fromList?: boolean } | null
 
@@ -26,22 +30,22 @@ function headline(total: number, current: number) {
   return "Bom treino, continue assim!"
 }
 
-/** Your groups as rows on the red card. Covers grow into the group's page when opened. */
+/** Your groups as rows on the light Grupos panel. Covers grow into the group's page when opened. */
 function GroupRows({ groups, onOpen }: { groups: Group[]; onOpen: (id: string) => void }) {
   return (
-    <ul className="mt-4 flex flex-col gap-2">
+    <ul className="mt-5 mb-5 flex flex-col gap-2">
       {groups.map((group, index) => (
         <motion.li key={group.id} {...settle(index, 0.1)}>
-          <motion.button type="button" onClick={() => onOpen(group.id)} className="flex w-full items-center gap-3 rounded-[20px] bg-white/12 p-2 pr-3 text-left" whileTap={PRESS}>
-            <GroupCover cover={group.cover} layoutId={SHARED.cover(group.id)} className="size-14 shrink-0 rounded-[14px] ring-1 ring-white/20" />
+          <motion.button type="button" onClick={() => onOpen(group.id)} className="flex w-full items-center gap-3 rounded-[22px] bg-[#EDEBEE] p-2 pr-3 text-left" whileTap={PRESS}>
+            <GroupCover cover={group.cover} layoutId={SHARED.cover(group.id)} className="size-14 shrink-0 rounded-[16px]" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[16px] font-semibold">{group.name}</span>
-              <span className="block truncate text-[13px] opacity-80">
+              <span className="block truncate text-[13px] text-ink/55">
                 {typeLabel(group)}
-                {group.days ? ` · Dia ${Math.min(dayNumber(group), group.days)} de ${group.days}` : ""} · 1º, {pointsLabel(group)}
+                {group.days ? ` · Dia ${Math.min(dayNumber(group), group.days)} de ${group.days}` : ""} · {myRank(group)}º, {pointsLabel(group)}
               </span>
             </span>
-            <ChevronRightIcon className="size-5 shrink-0 opacity-60" />
+            <ChevronRightIcon className="size-5 shrink-0 text-ink/35" />
           </motion.button>
         </motion.li>
       ))}
@@ -66,10 +70,14 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
   const days = streak(groups)
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
+    paintChrome("#1D1D1D")
   }, [])
 
   const update = (group: Group) => setGroups((all) => all.map((g) => (g.id === group.id ? group : g)))
+
+  // Stories: every friend's instant from today, across all your groups, full screen.
+  const [stories, setStories] = useState(false)
+  const todays = groups.flatMap((group) => liveInstants(group).filter((p) => p.by !== "me").map((post) => ({ post, group }))).sort((a, b) => b.post.at - a.post.at)
 
   // Check-in = an instant. The camera opens with the given groups ticked.
   const [camera, setCamera] = useState<string[] | null>(null)
@@ -116,25 +124,25 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
 
   const groupsCard = (
     <motion.section
-      className="relative shrink-0 overflow-hidden rounded-[30px] bg-rat p-5 text-white"
+      className="relative flex flex-1 flex-col overflow-hidden rounded-[30px] bg-paper p-5 text-ink"
       initial={{ y: 24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.08 }}
     >
-      <h2 className="text-[15px] font-semibold">Grupos</h2>
+      <h1 className="text-[clamp(34px,10vw,44px)] leading-none tracking-[-0.03em]">Grupos</h1>
       {groups.length ? (
         <GroupRows groups={groups} onOpen={(id) => setView({ screen: "group", id, fromList: true })} />
       ) : (
         <>
           {/* Nothing to compete in yet, so the rat sleeps. */}
-          <SleepyRat className="absolute top-3 right-3 w-[clamp(96px,28vw,124px)]" />
-          <p className="mt-3 max-w-[64%] text-[17px] leading-snug">Você ainda não tem grupos. Crie um ou entre em um grupo.</p>
+          <SleepyRat className="mx-auto mt-10 w-[clamp(140px,42vw,190px)]" />
+          <p className="mx-auto mt-5 max-w-[260px] text-center text-[17px] leading-snug text-ink/60">Você ainda não tem grupos. Crie um ou entre em um grupo.</p>
         </>
       )}
       <motion.button
         type="button"
         onClick={() => setJoining(true)}
-        className="relative mt-5 h-12 w-full rounded-[20px] bg-paper text-[17px] text-ink outline-none focus-visible:ring-3 focus-visible:ring-white/60"
+        className="relative mt-auto h-12 w-full shrink-0 rounded-[20px] bg-rat text-[17px] text-on-rat outline-none focus-visible:ring-3 focus-visible:ring-ink/30"
         whileTap={PRESS}
       >
         Novo grupo
@@ -145,9 +153,9 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
   return (
     <motion.div className="theme-fade absolute inset-0 bg-ink" style={themeStyle(kind)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
       <div inert={joining || view !== null} className="flex h-full flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto px-[7px] pt-[max(6px,var(--sat))] pb-2">
+        <div className="min-h-0 flex-1 overflow-y-auto px-[7px] pt-[max(6px,var(--sat))] pb-[calc(60px+max(12px,var(--sab))+16px)]">
           <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={tab} className={`flex flex-col gap-2 ${tab === "home" ? "h-full min-h-[560px]" : ""}`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
+            <motion.div key={tab} className={`flex flex-col gap-2 ${tab === "profile" || tab === "groups" ? "min-h-full" : ""}`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
               {tab === "home" && (
               <>
                 {/* Sized to fit one screen: the calendar and headline scale with the height, the groups take the rest. */}
@@ -170,12 +178,12 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
                     Dias seguidos: {days.current}/{days.best}
                   </motion.p>
                 </motion.section>
-                <FriendsStrip people={friendsToday(groups)} />
+                <FriendsStrip people={friendsToday(groups)} onOpen={() => setStories(true)} />
                 <GroupCarousel groups={groups} me={name} onOpen={(id) => setView({ screen: "group", id })} onNewGroup={() => setJoining(true)} />
               </>
             )}
             {tab === "groups" && groupsCard}
-              {tab === "checkin" && <CheckinView groups={groups} onCheckIn={(group) => setCamera([group.id])} onNewGroup={() => setJoining(true)} />}
+              {tab === "checkin" && <StatsView groups={groups} me={name} onCheckIn={() => (groups.length ? setCamera(groups.map((g) => g.id)) : setJoining(true))} />}
               {tab === "profile" && <ProfileView name={name} plan={plan} groups={groups} onReset={onRestart} />}
             </motion.div>
           </AnimatePresence>
@@ -205,6 +213,17 @@ export function Dashboard({ kind, name, onRestart }: { kind: RatKind; name: stri
         {view?.screen === "group" && current && (
           <motion.div key={`group-${current.id}`} className="absolute inset-0 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: open() }} exit={{ opacity: 0, transition: close }}>
             <GroupDetail group={current} morph={view.fromList} me={name} onBack={() => setView(null)} onInvite={() => setView({ screen: "invite", id: current.id })} onChange={update} onCheckIn={() => setCamera([current.id])} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {stories && (
+          <motion.div key="stories" className="absolute inset-0 z-30 flex flex-col bg-black px-[7px] pt-[max(6px,var(--sat))]" {...sheet}>
+            <InstantStack variant="full" items={todays} me={name} onChange={(groupId, next) => editPost(groupId, next.id, () => next)} onFinish={() => setStories(false)} />
+            <RoundButton label="Fechar" onClick={() => setStories(false)} className="absolute top-[max(22px,calc(var(--sat)+16px))] right-5 z-40 bg-black/45! text-white! backdrop-blur-md">
+              <XIcon className="size-5" />
+            </RoundButton>
           </motion.div>
         )}
       </AnimatePresence>

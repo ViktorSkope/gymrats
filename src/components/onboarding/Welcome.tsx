@@ -7,6 +7,7 @@ import { Eyes, type EyeSpec, type Look } from "@/components/rats/Eyes"
 import { PLAIN } from "@/components/rats/paths"
 import { haptic } from "@/hooks/useHaptic"
 import { CLOSE, EASE_IN_OUT, PRESS, close, open, settle } from "@/motion"
+import { paintChrome } from "@/chrome"
 
 const RED = "#D23A2C"
 const EYES: EyeSpec = { style: "pupil", left: [286.5, 399], right: [449.7, 395], r: 66, pupil: 50, rest: { x: 0, y: 0 } }
@@ -146,7 +147,7 @@ const MailIcon = () => (
  */
 export function Welcome({ onContinue }: { onContinue: () => void }) {
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#F7F5F8")
+    paintChrome("#F7F5F8")
   }, [])
 
   return (

@@ -9,7 +9,9 @@ type Field = "name" | "email" | "password"
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
 
+// Prototype: nothing is required. Empty is fine; only something typed wrong gets a hint.
 function errorFor(field: Field, value: string) {
+  if (!value.trim()) return ""
   if (field === "name") return value.trim().length < 2 ? "Como podemos te chamar?" : ""
   if (field === "email") return isEmail(value) ? "" : "Confira o email, parece incompleto."
   return value.length < 6 ? "Use pelo menos 6 caracteres." : ""
@@ -32,14 +34,8 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
   }, [focused, showPassword, onMood])
 
   const errors = { name: errorFor("name", values.name), email: errorFor("email", values.email), password: errorFor("password", values.password) }
-  const valid = !errors.name && !errors.email && !errors.password
-
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (!valid) {
-      setTouched({ name: true, email: true, password: true })
-      return
-    }
     onDone(values.name.trim())
   }
 
@@ -76,7 +72,7 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
         title="Crie sua conta"
         action={
           <>
-            <PrimaryButton shared type="submit" disabled={!valid}>
+            <PrimaryButton shared type="submit">
               Criar conta
             </PrimaryButton>
             <p className="mt-3 text-center text-[12px] leading-snug text-white/50">
@@ -85,7 +81,7 @@ export function SignupSheet({ name: initialName, onDone, onMood }: { name: strin
           </>
         }
       >
-        <p className="mt-2 text-[15px] text-white/60">Leva menos de um minuto.</p>
+        <p className="mt-2 text-[15px] text-white/60">No protótipo, pode deixar em branco e seguir.</p>
         <motion.div className="mt-6" {...settle(0, 0.1)}>
           {label("name", "Nome")}
           <input {...input("name")} type="text" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" placeholder="Seu nome" />

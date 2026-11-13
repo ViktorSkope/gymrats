@@ -7,6 +7,7 @@ import { haptic } from "@/hooks/useHaptic"
 import { PRESS, close, open, settle } from "@/motion"
 import { themeStyle } from "@/theme"
 import { PrimaryButton } from "./SheetScreen"
+import { paintChrome } from "@/chrome"
 
 export type Plan = "monthly" | "yearly"
 
@@ -80,7 +81,7 @@ export function Paywall({ onDone }: { onDone: (plan: Plan | null) => void }) {
   const [state, setState] = useState<"idle" | "buying" | "done">("idle")
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
+    paintChrome("#1D1D1D")
   }, [])
 
   const choose = (id: Plan) => {

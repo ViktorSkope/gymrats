@@ -1,4 +1,4 @@
-import { DumbbellIcon, UserRoundIcon, ZapIcon } from "lucide-react"
+import { ChartColumnIcon, UserRoundIcon, ZapIcon } from "lucide-react"
 import { motion } from "motion/react"
 import type { ComponentType } from "react"
 
@@ -22,17 +22,18 @@ function DotsIcon({ className }: { className?: string }) {
 const ITEMS: { id: Tab; label: string; icon: ComponentType<{ className?: string }>; filled?: boolean }[] = [
   { id: "groups", label: "Grupos", icon: DotsIcon },
   { id: "home", label: "Início", icon: ZapIcon, filled: true },
-  { id: "checkin", label: "Check-in", icon: DumbbellIcon },
+  { id: "checkin", label: "Treinos", icon: ChartColumnIcon },
   { id: "profile", label: "Perfil", icon: UserRoundIcon, filled: true },
 ]
 
 /**
- * Four icons straight on the dark background, no bar behind them. The current
- * tab sits in a white pill that slides between them.
+ * A floating dock over the content: four icons in a dark frosted pill, the current
+ * tab in a white pill that slides between them. Content scrolls underneath.
  */
 export function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <nav aria-label="Navegação" className="flex shrink-0 items-center justify-around px-4 pt-2 pb-[max(10px,var(--sab))]">
+    <nav aria-label="Navegação" className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center pb-[max(12px,var(--sab))]">
+      <div className="pointer-events-auto flex items-center gap-1 rounded-full bg-[#2B2B2B]/85 p-1.5 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-white/10 backdrop-blur-xl">
       {ITEMS.map(({ id, label, icon: Icon, filled }) => {
         const selected = id === active
         return (
@@ -46,7 +47,7 @@ export function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: T
               haptic()
               onChange(id)
             }}
-            className="relative flex h-11 w-[76px] items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="relative flex h-12 w-[68px] items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             whileTap={PRESS}
           >
             {selected && <motion.span layoutId={SHARED.activeTab} className="absolute inset-0 rounded-full bg-white" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
@@ -54,6 +55,7 @@ export function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: T
           </motion.button>
         )
       })}
+      </div>
     </nav>
   )
 }

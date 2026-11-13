@@ -6,11 +6,12 @@ import { MuscleRat } from "@/components/rats/MuscleRat"
 import { CLOSE, EASE_IN_OUT, close, open, settle } from "@/motion"
 import { themeStyle } from "@/theme"
 import { PrimaryButton } from "./SheetScreen"
+import { paintChrome } from "@/chrome"
 
 /** The finish line: the rat flexes over moving stripes, and one button lets you in. */
 export function Ready({ title, onDone }: { title: string; onDone: () => void }) {
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
+    paintChrome("#1D1D1D")
   }, [])
 
   return (

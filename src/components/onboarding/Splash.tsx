@@ -4,13 +4,14 @@ import { useEffect, useState } from "react"
 import splashRails from "@/assets/splash-rails.mp4"
 import { LogoMark } from "@/components/Logo"
 import { CLOSE, EASE_IN_OUT } from "@/motion"
+import { paintChrome } from "@/chrome"
 
 /** The logo writes itself in over the light-rails video, then hands over. Tap skips it. */
 export function Splash({ onDone }: { onDone: () => void }) {
   const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#1D1D1D")
+    paintChrome("#1D1D1D")
   }, [])
 
   useEffect(() => {

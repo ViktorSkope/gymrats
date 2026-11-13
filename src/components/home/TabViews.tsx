@@ -1,14 +1,13 @@
-import { CameraIcon, CheckIcon, DumbbellIcon } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import { CameraIcon } from "lucide-react"
+import { motion } from "motion/react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 
 import { RatFace } from "@/components/Avatar"
 import { useStored } from "@/hooks/useStored"
-import { GroupCover } from "@/components/groups/GroupCover"
-import { activeDays, checkedInToday, photoToDataUrl, pointsLabel, streak, type Group } from "@/components/groups/groups"
+import { activeDays, photoToDataUrl, streak, type Group } from "@/components/groups/groups"
 import { loadSample } from "@/components/groups/sample"
 import { haptic } from "@/hooks/useHaptic"
-import { PRESS, close, open, settle } from "@/motion"
+import { PRESS } from "@/motion"
 
 /** The light card every tab is built on. */
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -21,60 +20,6 @@ export function Panel({ children, className = "" }: { children: ReactNode; class
     >
       {children}
     </motion.section>
-  )
-}
-
-const today = () => new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
-
-/** Check in once per group, right from the tab: one tap, no detours. */
-export function CheckinView({ groups, onCheckIn, onNewGroup }: { groups: Group[]; onCheckIn: (group: Group) => void; onNewGroup: () => void }) {
-  const [date] = useState(today)
-  const done = groups.filter(checkedInToday).length
-  return (
-    <Panel>
-      <p className="text-[15px] font-semibold first-letter:uppercase">{date}</p>
-      <h1 className="mt-3 text-[clamp(36px,11.5vw,46px)] leading-[1.02] tracking-[-0.035em] text-balance">{groups.length && done === groups.length ? "Check-in feito. Bom treino!" : "Bora treinar hoje?"}</h1>
-      {groups.length ? (
-        <ul className="mt-6 flex flex-col gap-2">
-          {groups.map((group, index) => {
-            const checked = checkedInToday(group)
-            return (
-              <motion.li key={group.id} className="flex items-center gap-3 rounded-[20px] bg-[#EDEBEE] p-2 pr-2" {...settle(index, 0.1)}>
-                <GroupCover cover={group.cover} className="size-12 shrink-0 rounded-[14px]" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[16px] font-semibold">{group.name}</span>
-                  <span className="block truncate text-[13px] text-ink/55">{pointsLabel(group)}</span>
-                </span>
-                <motion.button
-                  type="button"
-                  onClick={() => {
-                    haptic(25)
-                    onCheckIn(group)
-                  }}
-                  className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[15px] font-medium transition-colors ${checked ? "bg-white text-ink" : "bg-rat text-white"}`}
-                  whileTap={PRESS}
-                  aria-label={checked ? `Outro check-in em ${group.name}` : `Fazer check-in em ${group.name}`}
-                >
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span key={String(checked)} className="flex items-center gap-1.5" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1, transition: open() }} exit={{ opacity: 0, scale: 0.8, transition: close }}>
-                      {checked ? <CheckIcon className="size-4 text-check" strokeWidth={3} /> : <DumbbellIcon className="size-4" />}
-                      {checked ? "Feito" : "Check-in"}
-                    </motion.span>
-                  </AnimatePresence>
-                </motion.button>
-              </motion.li>
-            )
-          })}
-        </ul>
-      ) : (
-        <>
-          <p className="mt-4 text-[17px] leading-snug text-ink/60">Check-ins contam pontos nos seus grupos. Entre ou crie um grupo para começar.</p>
-          <motion.button type="button" onClick={onNewGroup} className="mt-5 h-12 w-full rounded-[20px] bg-rat text-[17px] text-white" whileTap={PRESS}>
-            Novo grupo
-          </motion.button>
-        </>
-      )}
-    </Panel>
   )
 }
 
@@ -111,7 +56,7 @@ export function ProfileView({ name, plan, groups, onReset }: { name: string; pla
   }
 
   return (
-    <Panel>
+    <Panel className="flex-1">
       <div className="flex items-center gap-4">
         {/* Tap your picture to change it. */}
         <motion.button type="button" aria-label={photo ? "Trocar foto" : "Adicionar foto"} onClick={() => file.current?.click()} className="relative block size-[72px] shrink-0 rounded-full" whileTap={PRESS}>
